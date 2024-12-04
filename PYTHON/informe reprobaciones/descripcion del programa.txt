@@ -1,0 +1,6 @@
+genera un informe del acumulado de los estudiantes de un grupo durante un periodo
+
+debe leer un archivo Excel donde esten las notas
+
+@ hay que corregir para que no toque poner la dirección de los archivos en el escritorio. HASTA EL MOMENTO ES NECESARIO COPIAR LA CARPETA EN EL ESCRITORIO Y MODIFICAR LA RUTA EN EL CODIGO.
+DE IGUAL FORMA SE GUARDA EN EL ESCRITORIO.

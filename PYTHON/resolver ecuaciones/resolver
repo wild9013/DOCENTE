@@ -1,0 +1,74 @@
+import tkinter as tk
+from tkinter import messagebox
+import sympy as sp
+from docx import Document
+from docx.shared import Pt
+import re
+
+def formatear_ecuacion(ecuacion):
+    # Añade automáticamente el operador * entre un número y una variable si no está presente
+    ecuacion = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', ecuacion)
+    ecuacion = re.sub(r'([a-zA-Z])(\d)', r'\1*\2', ecuacion)
+    ecuacion = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', ecuacion)
+    return ecuacion
+
+def resolver_ecuacion(ecuacion):
+    # Formatea la ecuación para asegurar que sea válida
+    ecuacion = formatear_ecuacion(ecuacion)
+    
+    # Analiza la ecuación
+    try:
+        expr = sp.sympify(ecuacion)
+    except sp.SympifyError as e:
+        raise ValueError(f"No se pudo analizar la ecuación: {ecuacion}") from e
+    
+    # Resuelve la ecuación
+    solucion = sp.solve(expr)
+    
+    # Genera el paso a paso
+    pasos = []
+    pasos.append(f"Ecuación: {ecuacion}")
+    pasos.append(f"Solución: {solucion}")
+    
+    return pasos
+
+def crear_documento(pasos, archivo_salida):
+    doc = Document()
+    doc.add_heading('Resolución de la Operación Matemática', 0)
+    
+    for paso in pasos:
+        p = doc.add_paragraph(paso)
+        p.style.font.size = Pt(12)
+    
+    doc.save(archivo_salida)
+
+def ejecutar_programa():
+    ecuacion = entrada.get()
+    
+    if not ecuacion:
+        messagebox.showwarning("Advertencia", "Por favor, introduce una operación matemática.")
+        return
+    
+    try:
+        pasos = resolver_ecuacion(ecuacion)
+        archivo_salida = 'C:/Users/swild/Desktop/resultado_operacion.docx'
+        crear_documento(pasos, archivo_salida)
+        messagebox.showinfo("Éxito", f"El archivo '{archivo_salida}' ha sido creado exitosamente.")
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+
+# Configuración de la interfaz gráfica
+ventana = tk.Tk()
+ventana.title("Resolución de Operaciones Matemáticas")
+ventana.geometry("400x200")
+
+etiqueta = tk.Label(ventana, text="Introduce la operación matemática (ej. 'x**2 - 4'):")
+etiqueta.pack(pady=10)
+
+entrada = tk.Entry(ventana, width=40)
+entrada.pack(pady=5)
+
+boton = tk.Button(ventana, text="Resolver y Crear Archivo", command=ejecutar_programa)
+boton.pack(pady=20)
+
+ventana.mainloop()

@@ -1,0 +1,1 @@
+el programa se conecta a la cuenta de sheet de Google (la cual debe estar habilitada o compartida como se muestra en el video:  https://www.youtube.com/watch?v=a3ouEh6WMNw) el informe es generado por estudiante, contiene graficas.

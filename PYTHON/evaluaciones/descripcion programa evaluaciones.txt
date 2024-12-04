@@ -1,0 +1,2 @@
+el programa lee un Excel con las preguntas y respuestas 
+al final genera un informe del numero de aciertos que tuvo el estudiante.

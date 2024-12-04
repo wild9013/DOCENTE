@@ -1,0 +1,2 @@
+
+se busca crear un programa que edite archivos Excel y luego permita guardar los cambios. aun no es funcional.
