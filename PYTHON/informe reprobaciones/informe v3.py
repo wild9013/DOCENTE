@@ -2,8 +2,8 @@ import pandas as pd
 from docx import Document
 
 # Cambia la ruta al archivo Excel y la plantilla de Word a las ubicaciones correctas
-archivo_excel = 'C:/Users/swild/Desktop/python/datos.xlsx'
-plantilla_word = 'C:/Users/swild/Desktop/python/plantilla_informe.docx'
+archivo_excel = 'C:/Users/swild/OneDrive/Desktop/datos.xlsx'
+plantilla_word = 'C:/Users/swild/OneDrive/Desktop/plantilla_informe.docx'
 
 # Definir la nota máxima
 nota_maxima = 5.0  # Ajusta esto según la nota máxima de tu sistema

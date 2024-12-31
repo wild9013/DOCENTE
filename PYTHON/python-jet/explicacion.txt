@@ -1,0 +1,9 @@
+descripción del programa:
+
+requisitos:
+modificar las imágenes de los candidatos.
+
+
+contraseña:
+asdf
+tres espacios para seguir votando.
