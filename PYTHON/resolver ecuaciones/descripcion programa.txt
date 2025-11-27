@@ -1,1 +1,0 @@
-se busca crear un programa que resuelva ecuaciones matemáticas, aun es poco funcional.
