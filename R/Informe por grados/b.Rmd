@@ -1,0 +1,177 @@
+---
+title: "Untitled"
+author: "Docente Magister wilder salas mena"
+date: "2024-09-10"
+output: html_document
+---
+
+```{r}
+# Instala pdftools si no lo tienes
+# install.packages("pdftools")
+
+# Carga la librería
+library(pdftools)
+
+# Ruta al archivo PDF
+pdf_file <- "archivo2.pdf"
+
+# Extrae el texto del PDF
+pdf_text <- pdf_text(pdf_file)
+
+# Verifica si el texto se extrajo
+if (any(nchar(pdf_text) > 0)) {
+  cat("El PDF contiene texto que se puede extraer.\n")
+} else {
+  cat("El PDF no contiene texto extraíble. Puede ser una imagen escaneada.\n")
+}
+
+```
+
+
+```{r setup, include=FALSE}
+# Instala los paquetes si aún no lo has hecho
+# install.packages("pdftools")
+# install.packages("tesseract")
+# install.packages("stringr")
+# install.packages("magick")
+# install.packages("imager")
+
+# Carga las librerías
+#library(pdftools)
+#library(tesseract)
+#library(stringr)
+#library(magick)
+#library(imager)
+
+# Ruta al archivo PDF
+pdf_file <- "archivo2.pdf"
+
+# Función para realizar OCR en una página del PDF
+realizar_ocr <- function(pagina_pdf) {
+  # Convertir la página del PDF a una imagen
+  img_path <- tempfile(fileext = ".png")
+  
+  # Convertir la página al formato de imagen
+  pdf_convert(pdf_file, format = "png", pages = pagina_pdf, filenames = img_path)
+  
+  # Realizar OCR en la imagen
+  ocr_text <- ocr(img_path)
+  
+  # Limpiar el archivo temporal
+  unlink(img_path)
+  
+  return(ocr_text)
+}
+
+# Función para detectar marcas rellenas en la imagen
+detectar_marcas <- function(pagina_pdf) {
+  # Convertir la página del PDF a una imagen
+  img_path <- tempfile(fileext = ".png")
+  
+  # Convertir la página al formato de imagen
+  pdf_convert(pdf_file, format = "png", pages = pagina_pdf, filenames = img_path)
+  
+  # Leer la imagen con magick
+  img <- image_read(img_path)
+  
+  # Convertir la imagen a escala de grises
+  img_gray <- image_convert(img, colorspace = "gray")
+  
+  # Guardar la imagen en escala de grises
+  img_gray_path <- tempfile(fileext = ".png")
+  image_write(img_gray, img_gray_path)
+  
+  # Leer la imagen con imager
+  img_imager <- load.image(img_gray_path)
+  
+  # Aplicar umbral para binarización
+  img_binary <- threshold(img_imager, thr = 0.5)
+  
+  # Detectar círculos en la imagen
+  circles <- imfindcircles(img_binary, radius = c(10, 50))  # Ajusta el rango de radios según el tamaño de los círculos
+  
+  # Limpiar el archivo temporal
+  unlink(c(img_path, img_gray_path))
+  
+  return(circles)
+}
+
+# Extraer el número total de páginas en el PDF
+num_paginas <- pdf_info(pdf_file)$pages
+
+# Extraer texto usando OCR de cada página del PDF
+pdf_text_ocr <- sapply(seq_len(num_paginas), realizar_ocr, simplify = FALSE)
+
+# Detectar marcas en cada página del PDF
+pdf_circles <- lapply(seq_len(num_paginas), detectar_marcas)
+
+# Ver el texto extraído y las marcas detectadas (opcional)
+print(pdf_text_ocr)
+print(pdf_circles)
+
+# Función para extraer respuestas del texto OCR basado en la posición de los círculos
+procesar_respuestas_ocr <- function(texto_ocr, circles) {
+  # Limpieza del texto OCR y eliminación de caracteres no deseados
+  texto_ocr <- str_replace_all(texto_ocr, "[\n\r]", " ")
+  
+  # Encuentra las respuestas seleccionadas
+  respuestas <- list()
+  
+  # Extraer respuestas para cada pregunta
+  preguntas <- str_split(texto_ocr, "Pregunta")[[1]]
+  for (i in 2:length(preguntas)) {
+    pregunta_texto <- preguntas[i]
+    
+    # Extraer número de pregunta y respuesta seleccionada
+    num_pregunta <- str_extract(pregunta_texto, "\\d+")
+    respuesta <- str_extract(pregunta_texto, "\\(x\\) [A-Z]")
+    
+    if (!is.na(num_pregunta) && !is.na(respuesta)) {
+      respuestas[[paste0("Pregunta ", num_pregunta)]] <- str_replace(respuesta, "\\(x\\) ", "")
+    }
+  }
+  
+  # Procesar los círculos detectados (si es necesario ajustar la lógica)
+  # Aquí debes mapear los círculos detectados a las respuestas
+  # Ejemplo simple: Si un círculo está presente en la región de una respuesta, se marca como seleccionada
+  
+  return(respuestas)
+}
+
+# Definir respuestas correctas (ejemplo)
+respuestas_correctas <- list(
+  "Pregunta 1" = "C",
+  "Pregunta 2" = "B"
+)
+
+# Aplicar la función a cada página del PDF usando el texto extraído por OCR y los círculos detectados
+respuestas_lista <- mapply(procesar_respuestas_ocr, pdf_text_ocr, pdf_circles, SIMPLIFY = FALSE)
+
+# Ver las respuestas extraídas (opcional)
+print(respuestas_lista)
+
+# Función para calificar respuestas
+calificar <- function(respuestas, respuestas_correctas) {
+  puntaje <- 0
+  total_preguntas <- length(respuestas_correctas)
+  
+  for (pregunta in names(respuestas_correctas)) {
+    if (!is.null(respuestas[[pregunta]]) && respuestas[[pregunta]] == respuestas_correctas[[pregunta]]) {
+      puntaje <- puntaje + 1
+    }
+  }
+  
+  return(puntaje / total_preguntas * 100)  # Porcentaje
+}
+
+# Calificar las respuestas de cada página
+puntajes <- sapply(respuestas_lista, function(respuestas) {
+  calificar(respuestas, respuestas_correctas)
+})
+
+# Ver puntajes (opcional)
+print(puntajes)
+
+
+
+```

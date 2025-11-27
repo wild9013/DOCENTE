@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infograma: Genios de las Matemáticas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        /* Estilos personalizados si son necesarios */
+        body {
+            font-family: 'Inter', sans-serif; /* Fuente recomendada */
+            background-color: #f0f9ff; /* Azul muy claro de fondo */
+        }
+        .infographic-section {
+            background-color: white;
+            border-radius: 0.75rem; /* Esquinas redondeadas */
+            padding: 1.5rem; /* p-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Sombra suave */
+            border-left: 5px solid; /* Borde izquierdo para destacar */
+        }
+        .icon-circle {
+            width: 3.5rem; /* w-14 */
+            height: 3.5rem; /* h-14 */
+            border-radius: 9999px; /* rounded-full */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem; /* mr-4 */
+            flex-shrink: 0; /* Evita que el círculo se encoja */
+        }
+        /* Colores específicos para secciones */
+        .border-blue-500 { border-left-color: #3b82f6; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .text-blue-700 { color: #1d4ed8; }
+
+        .border-green-500 { border-left-color: #22c55e; }
+        .bg-green-100 { background-color: #dcfce7; }
+        .text-green-700 { color: #15803d; }
+
+        .border-yellow-500 { border-left-color: #eab308; }
+        .bg-yellow-100 { background-color: #fef9c3; }
+        .text-yellow-700 { color: #a16207; }
+
+        .border-purple-500 { border-left-color: #a855f7; }
+        .bg-purple-100 { background-color: #f3e8ff; }
+        .text-purple-700 { color: #7e22ce; }
+
+        .border-red-500 { border-left-color: #ef4444; }
+        .bg-red-100 { background-color: #fee2e2; }
+        .text-red-700 { color: #b91c1c; }
+
+        /* Estilo para los títulos de sección */
+        .section-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 0.75rem; /* mb-3 */
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="text-center mb-8 md:mb-12">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-800 mb-2">🧠✨ Genios de las Matemáticas ✨🧠</h1>
+        <p class="text-lg md:text-xl text-gray-600">Piensa, Diviértete y Soluciona</p>
+    </header>
+
+    <div class="max-w-4xl mx-auto">
+
+        <section class="infographic-section border-blue-500">
+            <div class="flex items-start">
+                <div class="icon-circle bg-blue-100 text-blue-700">
+                    <i class="fas fa-bullseye fa-lg"></i> </div>
+                <div>
+                    <h2 class="section-title text-blue-700">🎯 Justificación</h2>
+                    <p class="text-gray-700">Fortalecer la <span class="font-semibold">formación integral</span> y habilidades del siglo XXI (pensamiento crítico, creatividad) a través de matemáticas lúdicas y significativas.</p>
+                    <p class="text-gray-700 mt-2">Alineado con <span class="font-semibold">DBA, EBC, PND y CONPES</span>, enfocándose en calidad, equidad y competencias CTeI.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="infographic-section border-green-500">
+             <div class="flex items-start">
+                 <div class="icon-circle bg-green-100 text-green-700">
+                    <i class="fas fa-rocket fa-lg"></i> </div>
+                <div>
+                    <h2 class="section-title text-green-700">🚀 Objetivo Principal</h2>
+                    <p class="text-gray-700">Desarrollar <span class="font-semibold">habilidades matemáticas</span> en estudiantes de la I.E. Monte Verde (rural) con actividades <span class="font-semibold">lúdicas, creativas y contextualizadas</span>, promoviendo aprendizaje activo y resolución de problemas reales.</p>
+                 </div>
+            </div>
+        </section>
+
+        <section class="infographic-section border-yellow-500">
+             <div class="flex items-start">
+                 <div class="icon-circle bg-yellow-100 text-yellow-700">
+                    <i class="fas fa-tasks fa-lg"></i> </div>
+                <div>
+                    <h2 class="section-title text-yellow-700">🎯 Objetivos Específicos</h2>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><span class="font-semibold">Motivar</span> con juegos y creatividad.</li>
+                        <li>Desarrollar pensamiento <span class="font-semibold">geométrico/métrico</span> (robótica, topografía).</li>
+                        <li>Potenciar pensamiento <span class="font-semibold">numérico/variacional</span> (programación, problemas reales).</li>
+                        <li>Estimular pensamiento <span class="font-semibold">estadístico</span> (investigación, análisis de datos).</li>
+                        <li>Fortalecer razonamiento <span class="font-semibold">lógico</span> (retos, juegos).</li>
+                        <li>Promover <span class="font-semibold">participación y colaboración</span>.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="infographic-section border-purple-500">
+             <div class="flex items-start">
+                 <div class="icon-circle bg-purple-100 text-purple-700">
+                    <i class="fas fa-cogs fa-lg"></i> </div>
+                <div>
+                    <h2 class="section-title text-purple-700">🛠️ Metodología y Estrategias</h2>
+                    <p class="text-gray-700 mb-2"><span class="font-semibold">Enfoques:</span> Constructivismo, ABP, Aprendizaje Activo, Proyectos, Pertinencia Cultural.</p>
+                    <p class="text-gray-700 font-semibold mb-1">Actividades Clave:</p>
+                     <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><span class="font-semibold">ABP:</span> Resolución de problemas rurales.</li>
+                        <li><span class="font-semibold">ABJ:</span> Juegos y retos matemáticos.</li>
+                        <li><span class="font-semibold">Proyectos:</span> Integración (robótica, topografía, estadística).</li>
+                        <li><span class="font-semibold">Colaboración:</span> Trabajo en equipo.</li>
+                        <li><span class="font-semibold">Contextualización:</span> Vínculo con la vida local.</li>
+                        <li><span class="font-semibold">Tecnología:</span> Uso de software, kits de robótica, etc.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="infographic-section border-red-500">
+             <div class="flex items-start">
+                 <div class="icon-circle bg-red-100 text-red-700">
+                    <i class="fas fa-box-open fa-lg"></i> </div>
+                <div>
+                    <h2 class="section-title text-red-700">📦 Recursos Necesarios</h2>
+                    <ul class="list-disc list-inside text-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        <li>Materiales manipulativos (icopor, etc.)</li>
+                        <li>Kits de robótica básica</li>
+                        <li>Software educativo</li>
+                        <li>Herramientas de medición</li>
+                        <li>Materiales lúdicos (juegos, retos)</li>
+                        <li>Tabletas/Computadoras</li>
+                        <li>Espacios adecuados</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="text-center mt-8 text-gray-500 text-sm">
+        Infograma del Proyecto "Genios de las Matemáticas" - I.E. Monte Verde
+    </footer>
+
+</body>
+</html>

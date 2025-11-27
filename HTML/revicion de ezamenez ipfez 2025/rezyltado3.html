@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Caja y Bigotes Interactivo</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+        .chart-container, .gemini-container {
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px; /* Reducido para acercar al selector */
+        }
+        /* --- NUEVO: Estilos para el selector --- */
+        .selector-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .selector-container label {
+            font-weight: 600;
+            color: #525f7f;
+            margin-right: 10px;
+        }
+        #student-selector {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            font-size: 16px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        /* --- Fin de nuevos estilos --- */
+        #gemini-button {
+            display: block;
+            margin: 0 auto;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(94, 114, 228, 0.2);
+        }
+        #gemini-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(94, 114, 228, 0.3);
+        }
+        #gemini-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        #gemini-response {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            color: #525f7f;
+            text-align: justify;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5e72e4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <h1>Distribución de Notas por Materia</h1>
+            <div class="selector-container">
+                <label for="student-selector">📈 Ver resultado de:</label>
+                <select id="student-selector"></select>
+            </div>
+            <div id="boxPlot"></div>
+        </div>
+
+        <div class="gemini-container">
+            <button id="gemini-button">✨ Analisi Adimenduna Sortu</button>
+            <div id="loader" class="loader"></div>
+            <div id="gemini-response"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS ---
+        const estudiantes = [
+            "FREIDY ANDRES TERAN MARQUEZ", "WILSHER ANDRES NESTRA MATIA", "LUISA FERNANDA PARRA PEÑATE",
+            "JUAN LUIS JARAMILLO ARIZA", "ANDRES FELIPE RESTREPO GOENAGA", "JUAN ESTIVEN MORENO GUZMAN",
+            "CAROLINA VALENCIA CALDERON", "EMMANUEL PARRA DURANGO", "YIRIS YIRLEI ECHAVARRIA GAVIRIA",
+            "MARIA ALEJANDRA ORDOÑEZ PEREIRA", "DARLENIS JIMENEZ RUIZ", "JHONATAN DAVID DIAZ ALVAREZ",
+            "EZEQUIEL CASTEBONDE GARCIA", "YOIDER ALEXANDER ARIZA TORO", "VIVIANA MARIA BASILIO VASQUEZ",
+            "ROSMI ANGEL ROSARIO", "LUIS ALBERTO VIZCAINO MACHADO", "EDIER ANDRES BARON CHAVERRA",
+            "NAYIDIS MERCADO PERTUZ", "YAXEN CORDOBA PEREZ", "AIDER ROMERO BANQUET"
+        ];
+        const lectura =    [59, 61, 63, 54, 58, 54, 48, 47, 42, 52, 53, 50, 45, 43, 48, 42, 38, 39, 37, 38, 33];
+        const matematica = [68, 60, 66, 60, 42, 48, 35, 46, 40, 32, 36, 47, 41, 44, 36, 33, 49, 40, 27, 38, 32];
+        const sociales =   [50, 62, 51, 52, 45, 40, 46, 42, 44, 37, 33, 38, 33, 31, 34, 43, 29, 35, 39, 31, 39];
+        const cienciasN =  [55, 54, 52, 43, 53, 47, 52, 43, 41, 46, 43, 35, 44, 45, 39, 38, 36, 32, 39, 35, 36];
+        const ingles =     [71, 48, 62, 27, 46, 40, 53, 46, 49, 41, 42, 28, 39, 30, 40, 28, 30, 38, 43, 31, 30];
+        
+        // --- CONFIGURACIÓN DEL GRÁFICO ---
+        const materias = [
+            { nombre: 'Lectura', datos: lectura },
+            { nombre: 'Matemática', datos: matematica },
+            { nombre: 'Sociales', datos: sociales },
+            { nombre: 'Ciencias N', datos: cienciasN },
+            { nombre: 'Inglés', datos: ingles }
+        ];
+
+        const colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A'];
+
+        // 1. Crear los trazados para las cajas
+        const boxTraces = materias.map((materia, index) => ({
+            y: materia.datos,
+            type: 'box',
+            name: materia.nombre,
+            text: estudiantes,
+            hoverinfo: 'y+text',
+            boxpoints: 'all',
+            jitter: 0.5, 
+            pointpos: 0,
+            marker: { color: colors[index], size: 6, opacity: 0.6 },
+            line: { width: 2 }
+        }));
+        
+        // 2. Crear un trazado para las medias
+        const meanTrace = {
+            x: materias.map(m => m.nombre),
+            y: materias.map(m => m.datos.reduce((a, b) => a + b, 0) / m.datos.length),
+            text: materias.map(m => `Media: ${(m.datos.reduce((a, b) => a + b, 0) / m.datos.length).toFixed(2)}`),
+            hoverinfo: 'text',
+            mode: 'markers',
+            type: 'scatter',
+            name: 'Media',
+            showlegend: false,
+            marker: { symbol: 'diamond', color: '#2c3e50', size: 8, line: { color: 'white', width: 1 } }
+        };
+
+        const data = [...boxTraces, meanTrace];
+        
+        const layout = {
+            title: false,
+            font: { family: 'Inter, sans-serif', size: 12, color: '#525f7f' },
+            paper_bgcolor: 'white',
+            plot_bgcolor: '#fdfdff',
+            yaxis: { title: { text: 'Puntajes', font: { size: 14, color: '#2c3e50' } }, gridcolor: '#e9ecef', zeroline: false },
+            xaxis: { gridcolor: '#e9ecef' },
+            margin: { l: 60, r: 30, b: 60, t: 30 },
+            showlegend: true // MODIFICADO: Activamos la leyenda
+        };
+        
+        Plotly.newPlot('boxPlot', data, layout, {responsive: true});
+
+        // --- NUEVO: CÓDIGO PARA EL SELECTOR INTERACTIVO ---
+        const studentSelector = document.getElementById('student-selector');
+
+        // Poblar el selector con los estudiantes
+        const defaultOption = document.createElement('option');
+        defaultOption.value = -1;
+        defaultOption.textContent = 'Seleccione un estudiante...';
+        studentSelector.appendChild(defaultOption);
+
+        estudiantes.forEach((student, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = student;
+            studentSelector.appendChild(option);
+        });
+
+        // Función para actualizar el gráfico
+        function updateStudentTrace() {
+            const plotDiv = document.getElementById('boxPlot');
+            const selectedIndex = parseInt(this.value, 10);
+
+            // Buscar si ya existe un trazado de estudiante para borrarlo
+            const currentTraces = plotDiv.data;
+            const studentTraceIndex = currentTraces.findIndex(trace => trace.uid === 'student-trace');
+            
+            if (studentTraceIndex !== -1) {
+                Plotly.deleteTraces(plotDiv, studentTraceIndex);
+            }
+            
+            // Si se seleccionó un estudiante válido, añadir su trazado
+            if (selectedIndex >= 0) {
+                const studentName = estudiantes[selectedIndex];
+                const studentScores = materias.map(materia => materia.datos[selectedIndex]);
+
+                const studentTrace = {
+                    x: materias.map(m => m.nombre),
+                    y: studentScores,
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    name: studentName,
+                    uid: 'student-trace', // UID para identificar este trazado
+                    line: {
+                        color: '#FFD700', // Un color dorado para resaltar
+                        width: 3
+                    },
+                    marker: {
+                        symbol: 'star',
+                        size: 12,
+                        color: '#FFD700',
+                        line: {
+                            color: 'black',
+                            width: 1
+                        }
+                    }
+                };
+                Plotly.addTraces(plotDiv, studentTrace);
+            }
+        }
+        
+        // Añadir el listener al selector
+        studentSelector.addEventListener('change', updateStudentTrace);
+        
+        // --- CÓDIGO PARA LA INTEGRACIÓN CON GEMINI API (sin cambios) ---
+        const geminiButton = document.getElementById('gemini-button');
+        const geminiResponseContainer = document.getElementById('gemini-response');
+        const loader = document.getElementById('loader');
+
+        geminiButton.addEventListener('click', getGeminiAnalysis);
+
+        async function getGeminiAnalysis() {
+            geminiButton.disabled = true;
+            geminiResponseContainer.textContent = '';
+            loader.style.display = 'block';
+
+            const systemPrompt = `Eres un analista de datos y asesor educativo experto. A continuación se presentan las puntuaciones de los estudiantes en cinco asignaturas diferentes. Tu respuesta debe estar en español.
+
+            Basándote en estos datos, proporciona un análisis conciso y fácil de entender sobre el rendimiento general. Tu análisis debe tener dos partes:
+            1.  **Resumen del Rendimiento:** Describe brevemente las observaciones clave de los datos. ¿Qué asignatura tiene las puntuaciones más altas? ¿Cuál tiene la mayor variación? ¿Hay alguna tendencia clara?
+            2.  **Recomendaciones Generales:** Ofrece 3-4 recomendaciones prácticas para el profesor o los estudiantes con el fin de mejorar los resultados de aprendizaje.
+
+            Estructura tu respuesta de forma clara con títulos para cada sección.`;
+
+            const userQuery = `
+            Datos de las asignaturas (el orden corresponde a la lista de estudiantes):
+            - Estudiantes: ${JSON.stringify(estudiantes)}
+            - Lectura: ${JSON.stringify(lectura)}
+            - Matemática: ${JSON.stringify(matematica)}
+            - Sociales: ${JSON.stringify(sociales)}
+            - Ciencias N: ${JSON.stringify(cienciasN)}
+            - Inglés: ${JSON.stringify(ingles)}
+            `;
+
+            try {
+                // RECUERDA: Debes añadir tu propia API Key aquí
+                const apiKey = "TU_API_KEY_DE_GEMINI"; 
+                if (apiKey === "TU_API_KEY_DE_GEMINI" || !apiKey) {
+                   throw new Error("API Key no configurada.");
+                }
+                const generatedText = await callGeminiAPI(systemPrompt, userQuery, apiKey);
+                geminiResponseContainer.textContent = generatedText;
+            } catch (error) {
+                geminiResponseContainer.textContent = 'Error al generar el análisis. Por favor, verifica tu API Key y la conexión. (' + error.message + ')';
+                console.error("Error calling Gemini API:", error);
+            } finally {
+                geminiButton.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        async function callGeminiAPI(systemPrompt, userQuery, apiKey, retries = 3, delay = 1000) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    } else {
+                        throw new Error('Respuesta inesperada de la API o contenido vacío.');
+                    }
+                } catch (error) {
+                    console.error(`Intento ${i + 1} fallido:`, error);
+                    if (i < retries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Aciertos por Pregunta</title>
+    <!-- Importar Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importar Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 70vh; /* Altura del contenedor del gráfico */
+            width: 90vw; /* Ancho del contenedor del gráfico */
+            max-width: 1000px; /* Ancho máximo para pantallas grandes */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-gray-800">Análisis de Aciertos por Pregunta</h1>
+        <p class="text-gray-600 mt-2">Visualización del número de respuestas correctas para cada pregunta.</p>
+    </header>
+
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl">
+        <div class="chart-container">
+            <canvas id="graficoAciertos"></canvas>
+        </div>
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-gray-500">
+        <p>Datos extraídos de la tabla proporcionada.</p>
+    </footer>
+
+    <script>
+        // Datos de la imagen (fila "cantidad de aciertos por pregunta")
+        const cantidadAciertosPorPregunta = [10, 13, 13, 12, 14, 5, 4, 6, 6, 10, 8, 4, 17, 13, 12, 17, 9];
+        const numeroDePreguntas = cantidadAciertosPorPregunta.length;
+        const etiquetasPreguntas = [];
+        for (let i = 1; i <= numeroDePreguntas; i++) {
+            etiquetasPreguntas.push(`Pregunta ${i}`);
+        }
+
+        // Colores para las barras (puedes personalizar esto)
+        const coloresBarras = [
+            'rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(75, 192, 192, 0.6)',
+            'rgba(255, 206, 86, 0.6)', 'rgba(153, 102, 255, 0.6)', 'rgba(255, 159, 64, 0.6)',
+            'rgba(199, 199, 199, 0.6)', 'rgba(83, 102, 255, 0.6)', 'rgba(40, 159, 64, 0.6)',
+            'rgba(210, 99, 132, 0.6)', 'rgba(60, 192, 192, 0.6)', 'rgba(230, 206, 86, 0.6)',
+            'rgba(123, 102, 255, 0.6)', 'rgba(235, 159, 64, 0.6)', 'rgba(170, 170, 170, 0.6)',
+            'rgba(100, 120, 200, 0.6)', 'rgba(200, 100, 100, 0.6)'
+        ];
+
+        const coloresBorde = coloresBarras.map(color => color.replace('0.6', '1')); // Versión más opaca para bordes
+
+        // Configuración del gráfico
+        const config = {
+            type: 'bar', // Tipo de gráfico: barras
+            data: {
+                labels: etiquetasPreguntas, // Etiquetas para el eje X (Preguntas)
+                datasets: [{
+                    label: 'Cantidad de Aciertos', // Leyenda del dataset
+                    data: cantidadAciertosPorPregunta, // Datos para el eje Y (Aciertos)
+                    backgroundColor: coloresBarras, // Color de fondo de las barras
+                    borderColor: coloresBorde, // Color del borde de las barras
+                    borderWidth: 1.5, // Ancho del borde
+                    borderRadius: 5, // Bordes redondeados para las barras
+                    hoverBackgroundColor: coloresBorde, // Color al pasar el mouse
+                }]
+            },
+            options: {
+                responsive: true, // Hacer el gráfico responsivo
+                maintainAspectRatio: false, // Permitir que el gráfico no mantenga una relación de aspecto fija
+                scales: {
+                    y: {
+                        beginAtZero: true, // Empezar el eje Y en 0
+                        title: {
+                            display: true,
+                            text: 'Número de Aciertos', // Título del eje Y
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        ticks: {
+                            stepSize: 1, // Incremento de los ticks en el eje Y
+                             color: '#555'
+                        },
+                        grid: {
+                            color: '#e0e0e0' // Color de la cuadrícula
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Número de Pregunta', // Título del eje X
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                             color: '#333'
+                        },
+                        ticks: {
+                             color: '#555'
+                        },
+                        grid: {
+                            display: false // No mostrar cuadrícula vertical para un look más limpio
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true, // Mostrar la leyenda
+                        position: 'top', // Posición de la leyenda
+                        labels: {
+                            font: {
+                                size: 14
+                            },
+                            color: '#333'
+                        }
+                    },
+                    tooltip: {
+                        enabled: true, // Habilitar tooltips
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Color de fondo del tooltip
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                // Personalizar el texto del tooltip
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + ' aciertos';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000, // Duración de la animación en milisegundos
+                    easing: 'easeInOutQuart' // Tipo de easing para la animación
+                }
+            }
+        };
+
+        // Crear el gráfico
+        const ctx = document.getElementById('graficoAciertos').getContext('2d');
+        new Chart(ctx, config);
+    </script>
+
+</body>
+</html>

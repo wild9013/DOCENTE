@@ -1,0 +1,19 @@
+---
+title: "Informe de Calificación\"
+author: "Generado por R"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(kableExtra)
+```
+
+
+## Página 1
+
+```{r}
+resultados <- calificaciones
+kable(resultados, caption = 'Resultados de la Página 1') %>% kable_styling()
+```

@@ -1,0 +1,1483 @@
+---
+title: \vspace{1.0cm}"Informe final de periodo"
+subtitle: "Institucion Educativa Monte Verde"
+author: "Docente: Wilder Salas Mena"
+date: "`r Sys.Date()`"
+fontsize: 12pt
+font: arial
+papersize: letter
+lang: es
+geometry: margin=2.54cm
+#geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
+output:
+  
+  pdf_document: 
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    fig_caption: true
+    # number_sections: true #numera los titulos
+  html_document:
+    df_print: paged
+  word_document: default
+includes:
+  -in_header: "swilasd"
+description: "primera versión de informe general de final de periodo elaborado por docente wilder salas mena con el progama R"
+---
+
+```{=tex}
+\newpage 
+\tableofcontents 
+\listoffigures
+\listoftables
+\newpage
+```
+```{r INICIANDO VARIABLES, echo=FALSE}
+# Cargar librería para abrir ventana gráfica de selección de archivo
+if (!requireNamespace("tcltk", quietly = TRUE)) install.packages("tcltk2")
+library(tcltk)
+
+# Usar ventana gráfica para seleccionar el archivo
+direccion <- tk_choose.files(caption = "Selecciona el archivo de Excel", 
+                             filters = matrix(c("Excel files", "*.xlsx"), ncol = 2, byrow = TRUE))
+
+# Validar si el usuario canceló la selección
+if (length(direccion) == 0 || direccion == "") {
+  stop("No se seleccionó ningún archivo. El informe no puede generarse.")
+}
+
+
+nombreD="Wilder Salas Mena"
+paginaUsar <- 2
+columnaRes <- 42 #numero de la columna a evaluar.
+#######################################
+gradoD <- "9, 10 y 11"
+#######################################
+periodoD <- "primer periodo"
+#######################################
+año="2023"
+#######################################s
+#GRADOS EVALUADOS
+#####################
+evaluadosGrados<-c("grado9", "grado10a","grado10b", "grado11")
+pensamientosEvaluados<-c("aleatorio","geometrico","metrico","numerico","variacional")
+########################################
+# MODFICIACION 
+NombreVariable1<-"Modelación"
+NombreVariable2<- "Comunicacion"
+NombreVariable3<-"representacion"
+nombreIE<-"Institución Educativa Monte Verde"
+############################################
+```
+
+```{r  LIBRERIAS, echo=FALSE,warning=FALSE}
+#library(ggplot2)
+#library(summarytools)
+library(readxl)#libreria para cargar datos
+#install.packages("modeest") 
+#install.packages("kableExtra")
+#install.packages("esquisse")
+library(modeest)
+library(summarytools)
+#install.packages("dplyr")
+```
+
+```{r CONFIGURACIONES OPCIONALES, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+#Datos que usan la libreria readx1
+suppressMessages(datos1 <- read_excel(direccion, sheet = paginaUsar))#cargando datos segun la pagina
+#supressemessages evita que aparezca el error propio de este comando.
+#DatosUsar <- unlist(datos1[,res1])
+DatosUsar <- unlist(datos1[1:length(unlist(datos1[,columnaRes])),columnaRes])
+#el anterior codigo crea base de datos con las NOTAS a evaluar
+# length(DatosUsar) 
+
+```
+
+```{r medidas de tendencia central, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+media<-mean(DatosUsar)
+#el codigo anterior permite conocer el promedio de notas en todos los grados evaluados.
+
+medidasTCentral<-round(descr(DatosUsar, stats = c("mean","sd","q1","med","q3","min","max","cv"), headings = FALSE),2)
+#el codigo anterior permite conocer  las medias de tendencia central: media, mediana, moda, etc de las notas evaluadas.
+
+```
+
+```{r FRECUENCIAS, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+library(knitr)
+library(kableExtra)
+library(summarytools)
+#a<-freq(unlist(datos1[,columnaRes]), headings = FALSE) METODO TRADICIONAL DE TRABLA DE FRECUENCIA
+
+tablaFrecuencias<-round(freq(datos1[,42]),2)
+#mostrartabla1<-kable(tablaFrecuencias)%>%kable_styling(full_width = T,font_size = 9)%>%footnote(general = "Elaboracion propia",footnote_as_chunk = T,title_format = c("italic", "underline",general_title = "Fuente: "))
+#mostrartabla1<-(kable_styling(kable(tablaFrecuencias),full_width=T, font_size = 9))
+#mostrartabla1<-kable(tablaFrecuencias, caption = "Tabla de frecuencias.")%>%  kable_styling(full_width = F,position = "right")
+
+#mostrartabla1<-kable_styling(kable(list(medidasTCentral,tablaFrecuencias)),full_width = T) #combinar dos tablas.
+
+#mostrartabla1<-kable(medidasTCentral,format = "latex", booktabs = T)%>%kable_styling(position = "float_right")
+#configuracion basica latex
+mostrartabla1=kable(list(medidasTCentral,tablaFrecuencias), format= "latex",booktabs = T, caption = "Tabla de frecuencias")%>%kable_styling(latex_options = c("striped", "HOLD_position"), font_size = 10)%>%footnote(general="Elaboración propia.")
+
+#el codigo anterior muestra la tabla de frecuencia metodo tradicional solo es visible en pdf gracias a Latex.
+```
+
+```{r TODAS LAS FUNCIONES, echo=FALSE,warning=FALSE}
+
+#############################################
+#FUNCION QUE PERMITE CONTAR LA CANTIDAD DE PREGUNTAS POR CATEGORIA
+########################################
+funcionConta<-function(gradov,competenciav){
+      cantidadDeestudiantesgrado<-datos1%>%select(grado,categoria)%>%filter(grado==gradov)%>%count()
+      cantidadDePreguntasPorCategoriayGrado<-datos1%>%select(gradoCategoria,categoria)%>%filter(gradoCategoria==gradov,categoria==competenciav)%>%count()
+      cantidadDePreguntasPorCategoriayGrado
+      cantidadEvaluadosVariable3<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")%>%filter(categoria==competenciav)
+    #cantidadTotalPreguntaGrado
+      cantidadTotalPreguntaGrado<-cantidadDePreguntasPorCategoriayGrado*cantidadDeestudiantesgrado
+      return(cantidadTotalPreguntaGrado)
+}
+
+#funcionConta("grado10b",3)
+#funcionConta("grado9",3)
+#funcionConta("grado11",3)
+```
+
+```{r MENOR, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+
+menor<-0
+contarGradoNOvenob<-0
+contarGradoNOvenoa<-0
+contarGradoDiez<-0
+contarGradoOnce<-0
+
+###################################################################################
+#EL DODIGO SIGUIENTE PERMITE CONTAR LA CANTIDAD DE ESTUDIANTES DE CADA GRADO      # #EVALUADO ES IMPORTANTE MODIFICAR ESTA PARTE AÑO A AÑO.                           #
+###################################################################################
+datosuno<-datos1%>%filter(grado=="grado9b")%>%select(res,grado)%>%count()
+#datosuno
+contarGradoNOvenoa<-datos1%>%filter(grado=="grado9")%>%select(res,grado)%>%count()
+contarGradoNOvenob<-datos1%>%filter(grado=="grado10a")%>%select(res,grado)%>%count()
+contarGradoDiez<-datos1%>%filter(grado=="grado10b")%>%select(res,grado)%>%count()
+contarGradoOnce<-datos1%>%filter(grado=="grado11")%>%select(res,grado)%>%count()
+
+
+total=contarGradoDiez+contarGradoNOvenoa+contarGradoNOvenob+contarGradoOnce
+#el codigo anterior permite conocer la cantidad de valores evaluados el cual debe coincidir con los dados con la funcion length(DatosUsar)
+```
+
+# INFORME FINAL DE PERIODO **`r año`**
+
+# Introducción {style="blue"}
+
+La evaluación periódica es una herramienta fundamental en el área de matemáticas, ya que permite medir el nivel de comprensión y desempeño de los estudiantes en esta materia. A través de estas evaluaciones, se pueden identificar las fortalezas y debilidades de los estudiantes, lo que permite establecer estrategias correctivas para mejorar el proceso de enseñanza-aprendizaje. En este sentido, el análisis de los resultados obtenidos en los exámenes parciales del `r periodoD` de los grados **`r gradoD`** de la **`r nombreIE`** es de gran importancia para los docentes y estudiantes, ya que permite identificar las competencias que requieren mayor atención y dedicación para lograr un mejor rendimiento académico.
+
+# Parte I: Distribucion de la poblacion
+
+En el examen del `r periodoD` participarón un total de `r length(DatosUsar)` estudiantes de los grados `r gradoD` de la **`r nombreIE`**. La prueba fue presentada por `r contarGradoNOvenoa` estudiantes del `r evaluadosGrados[1]` que representan el `r round(contarGradoNOvenoa/total*100,2)`% de los evaluados, por `r contarGradoNOvenob` estudiantes del `r evaluadosGrados[2]` que representan el `r round(contarGradoNOvenob/total*100,2)`%, por `r contarGradoDiez` estudiantes del `r evaluadosGrados[3]` que representan el `r round(contarGradoDiez/total*100,2)`% y por `r contarGradoOnce` estudiantes del `r evaluadosGrados[4]` que representan el `r round(contarGradoOnce/total*100,2)`%. La cantidad de los estudiantes evaluados por grado se observan en la figura \ref{fig:myfigure1}:
+
+```{r GRAFICO DE BARRAS, echo=FALSE, fig.align='center', out.width='65%', fig.cap = "\\label{fig:myfigure1} Cantidad de estudiantes evaluados por grado",warning=FALSE}
+#EL SIGUIENTE XODIGO PERMITE REALIZAR DIAGRMA DE BARRAS DE LS DATOS EVALUADOS.
+require(ggplot2)
+graficosBarras<-ggplot(data=datos1, aes(x=grado, fill=grado))+
+  theme_linedraw()+
+  geom_bar()+ 
+  ylab("Cantidad")+
+  xlab("Grados evaluados")+
+  #ggtitle("Cantidad de estudiantes evaluados por grado")+
+  labs(subtitle="2023")+ 
+  coord_cartesian(ylim = c(0, 50))+ 
+  ggtitle("Cantidad de estudiantes evaluados por grado")+ 
+  theme(plot.title=element_text(size=13, face='bold', color='black'))
+
+graficosBarras
+```
+
+# Parte II: Analisis descriptivo
+
+Los datos estadisticos descriptivos de tendencia central (media, moda, mediana y demas) se muestran en la tabla :
+
+```{r TABLA, echo=FALSE, fig.height=14, fig.width=12, message=TRUE, warning=FALSE, out.width='55%', paged.print=TRUE}
+require(kableExtra)
+mostrartabla1
+#el codigo anteior muestra la tabla de frecuencias obtenida en el codigo. recordar que solo se mostrará en el pdf generado.
+```
+
+```{r GANADOS&PERDIDOS, echo=FALSE,out.width='55%',warning=FALSE}
+
+#EL SIGUIENTE CODIGO PERMITE CONOCER LA CANTIDAD DE ESTUDIANTES QUE GANARÓN LA PRUEBA Y LA CANTIDAD DE ESTUDIANTES QUE LA PERDIERON.
+cantidadEvaluados<-0
+contarMayores<-0
+contarMenores<-0
+#unlist(datos1[,columnaRes])
+
+for (x in unlist(datos1[,columnaRes])){
+  cantidadEvaluados<-cantidadEvaluados+1
+  if(x>=3){
+    contarMayores<-contarMayores+1
+  }
+  else{
+    contarMenores<-contarMenores+1
+  }
+}
+
+ganaron<-round(contarMayores/cantidadEvaluados,2)
+perdieron<-round(contarMenores/cantidadEvaluados,2)
+```
+
+```{r RANGO, echo=FALSE,warning=FALSE}
+b<- sum(DatosUsar<3)
+bs <- sum(DatosUsar>=3&DatosUsar<=3.9)
+a <-  sum(DatosUsar>3.9&DatosUsar<4.6)
+s <- sum(DatosUsar>=4.6)
+cantidadNiveles <- c(b, bs, a, s)
+tituloNiveles <- c("bajo", "basico", "alto", "superior")
+nivelesD <- data.frame(niveles =tituloNiveles, cantidad2= cantidadNiveles)
+rango<-(max(DatosUsar)-min(DatosUsar))
+```
+
+Al analizar la tabla anterior, se puede observar que la nota mínima y máxima obtenidas fueron de `r min(DatosUsar)` y `r max(DatosUsar)` respectivamente, lo que indica una diferencia de `r rango` `r if(rango<10){"unidades"}else{"decimas"}` entre la mejor y peor nota. Además, la media o promedio obtenido fue de `r round(mean(DatosUsar),2)` con desviación estandar de `r round(sd(DatosUsar),2)`, lo que indica niveles `r if(sd(DatosUsar)>0.1&sd(DatosUsar)<0.5){"BAJOS"}else{if(sd(DatosUsar)>0.5&sd(DatosUsar)<0.9){"MEDIOS"}else{"ALTOS"}}` de dispersión en los resultados. En consecuencia, se puede concluir que, en promedio, los evaluados tuvieron un `r if(media>3){ "BUEN"} else {"BAJO"}` rendimiento en la evaluación parcial del `r periodoD`.
+
+## Niveles de desempeño
+
+Al analizar los niveles de desempeño de los grados `r gradoD`, se observa que del total de `r length(DatosUsar)` estudiantes evaluados, el `r ganaron*100`% obtuvo una calificacion aprobatoria, mientras que el `r perdieron*100`% no logro superar la evaluaciòn. Al evaluar los niveles de desempeño, se observa que `r b` estudiantes tuvieron un nivel de desempeño bajo, `r bs` basico, `r a` alto y `r s` con superior. como se muestra en la grafica siguiente:\
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, eval=FALSE}
+graficav<-knitr::kable(nivelesD, format= "latex",booktabs = T, caption = "Tabla de frecuencias")%>%kable_styling(latex_options = c("striped", "HOLD_position"))
+```
+
+```{r echo=FALSE, message=FALSE, fig.width=5, fig.height=3,warning=FALSE}
+library(ggplot2)
+library(ggpubr)
+#tabla
+stable <- desc_statby(nivelesD, measure.var = "cantidad2",
+                      grps = "niveles")
+stable.p <- ggtexttable(nivelesD, rows = NULL, 
+                        theme = ttheme("mOrange"))
+#grafico
+grafico2023<-ggplot(data=nivelesD, aes(y=cantidad2, x=factor(niveles), fill=niveles))+theme_linedraw()+geom_bar(stat = "identity") +
+  theme(panel.background = element_rect(fill = "white", color = "transparent"))
+
+#UNIR TABLA Y GRAFICO
+#grafico2023+ annotation_custom(ggplotGrob(stable.p),xmin = 4.5, ymin = 4,                              xmax = 6.5, ymax=115)
+
+
+#PONE RUNO AL LADO DE OTRO
+ggarrange(grafico2023, stable.p, 
+ ncol = 2, nrow  = 1, align = "hv", 
+ widths   = c(2, 1), heights  = c(1, 2), 
+common.legend = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+gradosMedia<-c()
+gradosMediana<-c()
+gradosModa<-c()
+cantidadg<-4
+datos11<-datos1%>%select(res, categoria)
+
+gradosParaMedias<-evaluadosGrados
+for(j in gradosParaMedias){
+  datos11<-datos1%>%filter(grado==j)
+  gradosMedia<-round(c(gradosMedia,mean(datos11$res)),2)
+  gradosMediana<-round(c(gradosMediana,median(datos11$res)),2)
+  gradosModa<-round(c(gradosModa,modeest::mfv(datos11$res)),2)
+}
+
+
+grado9asummary<-datos1%>%select(grado,res)%>%filter(grado=="grado9")
+grado10asummary<-datos1%>%select(grado,res)%>%filter(grado=="grado10a")
+grado10bsummary<-datos1%>%select(grado,res)%>%filter(grado=="grado10b")
+grado11asummary<-datos1%>%select(grado,res)%>%filter(grado=="grado11")
+```
+
+```{r eecho=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+#tinytex::tlmgr_install("multicol")
+```
+
+# Parte III: Dispersión de los datos
+
+Para evaluar la dispersión de los datos y comparar los resultados entre los grupos evaluados, se utiliza la gráfica de cajas y bigotes, combinado con el diagrama de puntos (figura \ref{fig:myfigure2}). el cual permite evaluar cinco medidas estadísticas: *el mínimo, el primer cuartil, la mediana, el tercer cuartil y el máximo, a demas de la media por grupo (punto azul)*.
+
+Gracias a esta herramienta se logra visualizar:
+
+-- *La dispersión, la simetria y valores atipicos presentes los resultados de cada grupo evaluado.*
+
+-- *La la media, mediana y nota mínima aprobatoria (3.0) con relacin a todos los grupos.*
+
+Es asi como gracias al diagrama, se puede observar el grado de **homogeneidad** de los resultados.
+
+```{r diagrama de cajas y bigotes ggplot, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, fig.cap = "\\label{fig:myfigure2} Resultados por grado",out.width = '70%',out.height='70%'}
+library(ggplot2)
+library(dplyr)
+
+#datosuno<-datos1%>%select(res,grado) selecciona solo las filas deseadas
+#datosuno
+
+dbigotes<- ggplot(data=datos1,aes(x=grado, y = res),
+                size = 3, alpha = 0.6)+ 
+  stat_boxplot(geom = "errorbar", width = 0.25)+
+  ########################################################################
+  #la sigueinte linea de codigo debe modificarse de acuerdo a la cantidad de grados evaluados
+  #######################################################################
+  geom_boxplot(color=c("blue"))+
+  geom_jitter(color="red")+
+  xlab("Grados evaluados")+
+  ylab("Notas")+
+  ggtitle("Resultados por grado", subtitle = 2022)+
+  #muestra la linea de la media
+  geom_hline(yintercept=c(mean(DatosUsar),3))+
+  #muestra la linea de la mediana
+   geom_hline(yintercept=c(median(DatosUsar),3))+
+  #MUESTRAN LOS TITULOS DE LA LINEAS
+  annotate(geom = "text", x = 0.65, y = mean(datos1$res), label = "media", size = 3, color="red") +
+  annotate(geom = "text", x = 0.65, y = median(datos1$res), label = "mediana", size = 3, color="blue") +
+  annotate(geom = "text", x = 0.65, y = 3, label = "nota minima", size = 3) +
+  stat_summary(fun.y=mean, geom="point", shape=18,
+size=3, color="blue")
+```
+
+```{r  echo=FALSE, results='hide',warning=FALSE}
+library(ggplot2)
+library(ggExtra)
+library(ggpubr)
+
+
+#GRAFICO DE DENSIDAD vertical
+xplot <- ggdensity(datos1, "res", fill =  "grado",
+ palette  =  "jco")+
+  rotate()
+#GRAFICO DOS
+grafico20231<-ggplot(data=nivelesD, aes(y=cantidad2, x=factor(niveles), fill=niveles))+theme_linedraw()+geom_bar(stat = "identity")
+
+```
+
+```{r echo=FALSE, results='hide',warning=FALSE}
+ggarrange(dbigotes, xplot, 
+ ncol = 2, nrow  = 1, align = "hv", 
+ widths   = c(2, 1), heights  = c(1, 2), 
+common.legend = TRUE)
+```
+
+## Desviación estandar {#titulo1 style="color:red"}
+
+En el análisis de las notas, la media puede ser útil para determinar el rendimiento promedio de los estudiantes en una clase o examen. Al analizar los resultados medios de los grados evaluados se observa que el `r gradosParaMedias[1]` obtuvo como media `r gradosMedia[1]`, el `r gradosParaMedias[2]` obtuvo `r gradosMedia[2]`, el `r gradosParaMedias[3]` obtuvo `r gradosMedia[3]`y el grado `r gradosParaMedias[4]` un `r gradosMedia[4]`, con la respectiva desviacion desviación estandar que para el **`r gradosParaMedias[1]`** fue `r round(sd(grado9asummary$res),2)`, para **`r gradosParaMedias[2]`** fue `r round(sd(grado10asummary$res),2)`, para el **`r gradosParaMedias[3]`** fue `r round(sd(grado10bsummary$res),2)` y para el **`r gradosParaMedias[4]`** correspondio a `r round(sd(grado11asummary$res),2)`. Aclarando que una desviación estándar es alta, significa que hay mucha variabilidad en las notas y que algunos estudiantes están obteniendo calificaciones muy altas o muy bajas. Si la desviación estándar es baja, significa que las notas están más agrupadas alrededor de la media y que los estudiantes están obteniendo calificaciones similares.
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+condicionuno<-median(DatosUsar)+sd(DatosUsar)+1 #calcular valres atipicos (ojo)
+extremo<-0
+contador<-0
+for(a in DatosUsar){
+  if(a>condicionuno){
+    extremo<-1
+  }
+}
+if(extremo>0){
+  contador<-1
+}
+```
+
+```{r  NO ELIMINAR: porcentaje de estudiantes que aprobaron por competencia, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+contt<-1
+summ<-0
+summ2<-0
+summ3<-0
+#para que cuente LA CANTIDAD DE PREGUNTAS 
+cantidadPreguntas<-datos1%>%select(categoria)%>%filter(categoria!="NA")
+
+
+#datos1$cantidad[1:10]
+ventorcantidad<-data.frame("familiar"=c(1,2,3), "cantidad"= c(NombreVariable1,NombreVariable2,NombreVariable3), "sumas"=c(summ,summ2,summ3))
+#ventorcantidad$familiar
+for (j in ventorcantidad$familiar){
+  contt<-1
+  summ<-0
+  summ2<-0
+  summ3<-0
+  #cuenta por categoria
+  for (i in datos1$categoria[1:length(cantidadPreguntas$categoria)]) {
+    if (i==1) {
+      #print(datos1$cantidad[contt])
+      summ<-summ+datos1$cantidad[contt]
+    }
+    if (i==2) {
+      #print(datos1$cantidad[contt])
+      summ2<-summ2+datos1$cantidad[contt]
+    }
+    if (i==3) {
+      #print(datos1$cantidad[contt])
+      summ3<-summ3+datos1$cantidad[contt]
+    }
+    
+    
+    contt<-contt+1
+    #esta sumando todo se debe hacer el calulculo para que solo sume por categoria
+    i
+  }
+
+}
+ventorcantidad<-data.frame("familiar"=c(1,2,3), "cantidad"= c(NombreVariable1,NombreVariable2,NombreVariable3), "sumas"=c(summ,summ2,summ3))
+vectorPorCategoria<-data.frame(c(summ,summ2,summ3))
+```
+
+```{r SE PUEDE ELIMINAR:otra forma de hacer lo anterior pero, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+ae<-aggregate(datos1[43:45]$cantidad, list(categoria = datos1[43:45]$categoria), FUN = sum)
+```
+
+```{r SE PUEDE LEIMINAR: forma 3, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+# Cargar el paquete dplyr
+library(dplyr)
+
+# Crear un arreglo de ejemplo
+datosUsadosArreglo<-datos1[43:45]
+
+# Usar dplyr para agrupar por categoria y sumar los correctos
+ae<-datosUsadosArreglo %>% 
+ group_by(categoria) %>% 
+ summarise(total_correctos = sum(cantidad))
+```
+
+```{r VALOR MAYOR, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+#ventorcantidad$cantidad
+#ventorcantidad$sumas
+mayorCategoria<-0
+posicion<-1
+posicion2<-1
+for (a in ventorcantidad$sumas) {
+  if(a>mayorCategoria){
+    mayorCategoria<-a
+    posicion<-posicion2
+  }
+  posicion2<-posicion2+1
+}
+#print(mayorCategoria)
+posicionmayor<-posicion
+#posicionmayor
+mayorcantidadDeAciertos<-ventorcantidad$cantidad[posicionmayor]  #ubica cual es el componente con maryor cantidad de aciertos
+```
+
+```{r VALOR MENOR, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+menorCategoria<-100000000000
+posicion<-1
+posicion2<-1
+for (a in ventorcantidad$sumas) {
+  if(a<menorCategoria){
+    menorCategoria<-a
+    posicion<-posicion2
+  }
+  posicion2<-posicion2+1
+}
+#print(menorCategoria)
+posiconMenor<-posicion
+#posiconMenor
+menorcantidadDeAciertos<-ventorcantidad$cantidad[posiconMenor]  #ubica cual es el componente con maryor cantidad de aciertos
+```
+
+```{r cantidad de preguntas por categoria,echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+###############
+#IMPORTANTE: DEBE MODIFICARSE SEGUN CANTIDAD DE CATEGORIAS
+##################################
+categoria <- as.factor(datos1[43:48]$categoria)
+aaas<-count(datos1[43:48],categoria)
+categoria1<-aaas$n[1]
+categoria2<-aaas$n[2]
+categoria3<-aaas$n[3]
+
+#############################################
+#cantidad de preguntas por categoria
+#############################################
+cantidadcategoria1<-categoria1*length(DatosUsar)
+cantidadcategoria2<-categoria2*length(DatosUsar)
+cantidadcategoria3 <-categoria3*length(DatosUsar)
+```
+
+```{r NO ELIMINAR, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE,message=FALSE}
+######################################################
+#FUNCION QUE PERMITE CONTAR LA CANTIDAD DE PREGUNTAS QUE CUMPLEN CON DOS CRITERIOS
+#CATEGORIA Y GRADOSCATEGORIA (DE LAS 20 PREGUNTAS)
+################################################
+# Crear un array con tres dimensiones
+array <- datos1[43:47]%>%filter(cantidad!="NA")
+#CANTIDAD DE DATOS
+VCV<-datos1%>%filter(categoria!="NA")
+cantidadDatoss<-length(VCV$categoria)
+
+# Crear una función que cuente y clasifique las preguntas en el array
+contar_clasificar <- function(array, categoria, gradoCategoria) {
+    # Inicializar un contador en cero
+    contador <- 0
+    # Recorrer el array con un bucle for anidado
+    for (i in 1:cantidadDatoss) 
+    {
+      if(array[i,1]==categoria && array[i,5] == gradoCategoria){
+       
+          # Incrementar el contador en uno
+          contador <- contador + 1
+      }
+    }
+    
+    # Retornar el valor del contador
+    return(contador)
+}
+
+# Usar la función para contar y clasificar las preguntas de la categoría 1 y el grado 9 en el array
+Grado10a1<-contar_clasificar(array, 1, "grado10a")
+Grado10a2<-contar_clasificar(array, 2, "grado10a")
+Grado10a3<-contar_clasificar(array, 3, "grado10a")
+Grado10b1<-contar_clasificar(array, 1, "grado10b")
+Grado10b2<-contar_clasificar(array, 2, "grado10b")
+Grado10b3<-contar_clasificar(array, 3, "grado10b")
+Grado9b1<-contar_clasificar(array, 1, "grado9")
+Grado9b2<-contar_clasificar(array, 2, "grado9")
+Grado9b3<-contar_clasificar(array, 3, "grado9")
+Grado11b1<-contar_clasificar(array, 1, "grado11")
+Grado11b2<-contar_clasificar(array, 2, "grado11")
+Grado11b3<-contar_clasificar(array, 3, "grado11")
+
+#preguntas_tipo_1<-Grado10b1+Grado9b1+Grado11b1
+#preguntas_tipo_2<-Grado10b2+Grado9b2+Grado11b2
+#preguntas_tipo_3<-Grado10b3+Grado9b3+Grado11b3
+
+array2<-datos1[43:47]%>%filter(grado!="NA")
+###########################
+#contar la cantidad de estudiantes por grado
+####################
+contar_clasificar22 <- function(array2, grado) {
+    # Inicializar un contador en cero
+    contador <- 0
+    for (i in 1:length(DatosUsar)){
+      if(array2[i,4]==grado){
+        contador<-contador+1
+      }
+    
+    }
+    return(contador)
+}
+grado9<-contar_clasificar22(array2, "grado9")
+grado10a<-contar_clasificar22(array2, "grado10a")
+grado10b<-contar_clasificar22(array2, "grado10b")
+grado11<-contar_clasificar22(array2, "grado11")
+
+##########################################
+#cantidad de preguntas por tipo y  por grado
+#########################################
+cantidadT1Grado9<-grado9*Grado9b1
+cantidadT1Grado92<-grado9*Grado9b2
+cantidadT1Grado93<-grado9*Grado9b3
+
+
+cantidadT1Grado10a<-grado10a*Grado10a1
+cantidadT1Grado10a2<-grado10a*Grado10a2
+cantidadT1Grado10a3<-grado10a*Grado10a3
+
+cantidadT1Grado10<-grado10b*Grado10b1
+cantidadT1Grado102<-grado10b*Grado10b2
+cantidadT1Grado103<-grado10b*Grado10b3
+
+cantidadT1Grado11<-grado10b*Grado11b1
+cantidadT1Grado112<-grado10b*Grado11b2
+cantidadT1Grado113<-grado10b*Grado11b3
+
+##############
+#cantidad de preguntas por tipo todos los grados
+#############
+cantidadT1<-cantidadT1Grado9+cantidadT1Grado10+cantidadT1Grado11+cantidadT1Grado10a
+cantidadT2<-cantidadT1Grado92+cantidadT1Grado102+cantidadT1Grado112+cantidadT1Grado10a2
+cantidadT3<-cantidadT1Grado93+cantidadT1Grado103+cantidadT1Grado113+cantidadT1Grado10a3
+
+###################
+#resultado final
+##########
+categoria11<-round(summ/(cantidadT1)*100,2)
+categoria22<-round(summ2/(cantidadT2)*100,2)
+categoria33<-round(summ3/(cantidadT3)*100,2)
+
+
+```
+
+# Parte IV: Número de aciertos por pregunta
+
+Al evaluar las preguntas segun el número de aciertos obtenidos se obtiene la siguiente grafica:
+
+```{r echo=FALSE, message=FALSE,out.width = '100%',out.height='70%',warning=FALSE}
+#EL SIGUIENTE XODIGO PERMITE REALIZAR DIAGRMA DE BARRAS DE LS DATOS EVALUADOS.
+require(ggplot2)
+###############################################
+#color red al mayor
+###############################################
+
+
+
+
+buscarMayorColor<-function(gradov){
+  recorrer2<-datos1%>%filter(gradoCategoria==gradov)
+  vectorcolores<-c()
+  for (i in recorrer2$cantidad)
+  {
+    if(i == max(recorrer2$cantidad)){
+      vectorcolores<-c(vectorcolores, "mayor")
+    } else if(i==min(recorrer2$cantidad)){
+      vectorcolores<-c(vectorcolores, "negro")
+    } else {
+      vectorcolores<-c(vectorcolores, "otros")
+    }
+  }
+  vectorcolores
+}
+cantidaddelgrado<-function(gradov){
+  r32<-count(datos1%>%select(grado)%>%filter(grado==gradov))
+  unlist(r32)
+}
+
+funcionGraficaPreguntas<-function(gradov){
+grafica<-ggplot(data = datos1%>%filter(gradoCategoria==gradov), aes(x = factor(pregunta), y = cantidad/cantidaddelgrado(gradov), fill=buscarMayorColor(gradov))) + geom_bar(stat = "identity")+ theme(legend.position = "none")+ scale_y_continuous(labels = scales::percent)+ylab("cantidad")+
+  labs(title = gradov)
+grafica
+}
+
+grafic1<-funcionGraficaPreguntas("grado9")
+grafic2<-funcionGraficaPreguntas("grado10a")
+grafic3<-funcionGraficaPreguntas("grado10b")
+grafic4<-funcionGraficaPreguntas("grado11")
+
+library(gridExtra)
+grid.arrange(grafic1, grafic2, grafic3, grafic4,
+             nrow = 2,
+             ncol = 2,
+             top = "Aciertos  por pregunta y grados")
+```
+
+Las preguntas colereadas de color naranja representan aquellas que obtuvieron el mayor porcentaje de acierto, por su parte las preguntas con el menor porcentaje de acierto son coloreadas de color verde. Es posible observar varias preguntas con igual puntuación.
+
+en la siguiente grafica se representa el total de aciertos por grado:
+
+```{r echo=FALSE, message=FALSE,out.width = '70%',out.height='50%',warning=FALSE}
+bp <- ggbarplot(datos1%>%filter(gradoCategoria!="NA"), x  = "gradoCategoria", y =  "cantidad",
+          fill = "gradoCategoria",               # change fill color by cyl
+          color = "white",            # Set bar border colors to white
+          palette = "jco",            # jco journal color palett. see ?ggpar
+          
+          sort.by.groups = TRUE,      # Sort inside each group
+          x.text.angle = 90           # Rotate vertically x axis texts
+          )
+bp
+```
+
+# Parte V: Cantidad de preguntas por competancias
+
+Como ya se ha podido observar, en el presente documento se presentan los resultados obtenidos del examen en el que se evaluaron los diferentes grupos en cuanto a su nota media, nota más frecuente y mediana. Además, se evaluaron los resultados en las tres competencias matemáticas: `r NombreVariable1` *(componente 1)*, `r NombreVariable2` *(componente 2)* e `r NombreVariable3` *(componente 3)*, las cuales son fundamentales para el desarrollo del pensamiento en el área de matemáticas.
+
+La distribucion de las preguntas de acuerdo a la categoria y la cantidad de preguntas por categoria se muestran en las sigueintes graficas (respectivamente): \bigskip
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, results='hide'}
+##################################################
+#GENERANDO LA FUNCION PARA GRAFICOS
+###################################################
+
+funcionCategoriaGantidad<-function(gradov){
+  variable1<-datos1%>%select(categoria,pregunta,gradoCategoria)%>%filter(gradoCategoria==gradov)
+ ggplot(data = datos1%>%filter(gradoCategoria==gradov),aes(x =factor(pregunta) , y=factor(categoria)) )+ 
+  geom_point()+ylab("categoria")+xlab("pregunta")+
+  labs(title = gradov)
+  
+
+}
+
+df1<-funcionCategoriaGantidad("grado9")
+df2<-funcionCategoriaGantidad("grado10a")
+df3<-funcionCategoriaGantidad("grado10b")
+df4<-funcionCategoriaGantidad("grado11")
+
+library(gridExtra)
+#grid.arrange(df1, df2, df3, df4, nrow = 2, ncol = 2, top = "Comparación de categorías por pregunta", bottom = "año 2023")
+
+#OTRA FORMA DE HACERLO.
+
+variable1<-datos1%>%select(categoria,pregunta,gradoCategoria)%>%filter(gradoCategoria!="NA",categoria!="NA",pregunta!="NA")
+
+graficoPuntoTipoI<-ggplot(data = variable1 )+ 
+  geom_point(aes(x =factor(pregunta) , y=factor(categoria), color=gradoCategoria))+
+  ylab("categoria")+
+  xlab("pregunta")+
+  facet_wrap(~ gradoCategoria, nrow = 2) +
+  labs(title = "competencia de las preguntas por grado" ) +
+  scale_fill_brewer(palette = "YlOrRd")+                      #7
+  theme_bw(base_size = 6)        +   #7
+  theme(legend.position = "none")
+
+```
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure3} Resultados por grado",fig.width=5, fig.height=3}
+graficobarratipoI<-ggplot(datos1, aes(x=categoria, fill=gradoCategoria)) +      #1
+  geom_bar()+                                          #2
+  labs(x= "categorias",  y="Frecuencias", fill="gradoCategoria") +  #3 
+  scale_fill_discrete(name = "Componente") +
+  ylim(c(0,40))  +                  #4   
+  #xlim(c(0,300)) +                  #4
+  ggtitle("cantidad e preguntas por grado (todos los grados)") +    #5
+  coord_flip() +                    #6
+  #theme_bw() +                      #7
+  theme_bw(base_size = 6)        +   #7
+facet_wrap(~"cantidad de variables por grado")
+#+theme(legend.position = "botto")
+  
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure4} Resultados por grado",out.width = '100%', fig.height=3}
+library(ggpubr)
+ggarrange( graficoPuntoTipoI,graficobarratipoI, 
+  ncol = 2,       nrow = 1 ,
+          common.legend = TRUE, legend = "bottom"     )
+```
+
+\bigskip
+
+# Parte VI: Resultados por competancia [todos los grupos]
+
+Al evaluar los resultados por competencias, se observó que la competencia **`r ventorcantidad$cantidad[1]`** obtuvo el **`r categoria11`%** de aciertos, la competencia **`r ventorcantidad$cantidad[2]`** obtuvo el **`r categoria22`%** de aciertos y la competencia **`r ventorcantidad$cantidad[3]`** obtuvo el **`r categoria33`%** de aciertos. El componente con mayor número de aciertos fue: **`r mayorcantidadDeAciertos`**, mientras que el componente con menor número de aciertos fue **`r menorcantidadDeAciertos`** lo que indica la necesidad de realizar actividades de fortalecimiento en esta área. Los resultados anteriores se presentan en la siguiente tabla: \bigskip
+
+```{r  echo=FALSE, message=FALSE, error=FALSE, warning=FALSE,fig.width=5, fig.height=3 }
+datablase<-data.frame(c(NombreVariable1,NombreVariable2,NombreVariable3),c(categoria11,categoria22,categoria33))
+names(datablase)<-(c("variable","cantidad de aciertos %"))
+#generar tabla 
+graficab<-kable(datablase, format= "latex",booktabs = T, caption = "Tabla de frecuencias", digits = c(NA,2), align = c("l","c"))%>%kable_styling(latex_options = c("striped", "HOLD_position","condensed"),full_width = FALSE)%>%footnote(general="Elaboración propia.")
+graficab
+```
+
+Los resultados anteriores se evidencian en la siguietne grafica:
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, fig.align='center',out.width = '70%',out.height='70%'}
+#install.packages("fmsb")
+library(fmsb)
+titulos<-c(ventorcantidad$cantidad[1], ventorcantidad$cantidad[2], ventorcantidad$cantidad[3])
+
+categoriauno<-c(1,0,summ/cantidadT1)
+categoriados<-c(1,0,summ2/cantidadT2)
+categoriatres<-c(1,0,summ3/cantidadT3)
+
+dataflame1<-data.frame(categoriauno,categoriados,categoriatres)
+names(dataflame1)<-titulos
+#dataflame
+radarchart(dataflame1, 
+           cglty = 1,
+           vlcex=0.8, #cambia tamaño de los titulos de eje
+           pcol = 2:4,
+           cglcol="gray", 
+           plwd=2, 
+           pfcol = rgb(0, 0.4, 1, 0.25),
+           xlim=c(-1, 1), ylim=c(-1, 1), pch=32, #alinea la grafica en la ventana
+           axistype = 3, #agrega porcentaje a las lineas
+           pty = 24,
+           seg=4, #segmenta la cantidad de lineas internas
+           centerzero=1
+          )
+
+```
+
+```{r echo=FALSE, message=FALSE, out.width = '70%', eval=FALSE,warning=FALSE}
+require(plotly)
+webshot::install_phantomjs()
+fig <- plot_ly(
+    type = 'scatterpolar',
+    r = c(summ/length(DatosUsar),summ2/length(DatosUsar),summ3/length(DatosUsar)),
+    theta = c('variable1','variable2','variable3'),
+    fill = 'toself'
+  ) 
+fig <- fig %>%
+  layout(
+    polar = list(
+      radialaxis = list(
+        visible = T,
+        range = c(0,1)
+      )
+    ),
+    title="wilder salas",
+    showlegend = F,
+  )
+fig
+```
+
+# Parte VII: Resultados por competencia [por grados].
+
+Al evaluar los resultados obtenidos por competencia en cada uno de los grados evaluados, se observan los siguientes resultados (tabla \ref{tabla05}):
+
+```{r ELIMINAR, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+
+###########################################
+#es valido solo para evaluaciones que integren 4 grados
+############################################
+
+#install.packages("devtools")
+#devtools::install_github("ricardo-bion/ggradar",dependencies = TRUE)
+#library(ggradar)
+#library(dplyr)
+#library(scales)
+#library(tibble)
+
+
+#ciclo que recorre las categorias
+vectorArecorrer<-evaluadosGrados
+contadoruno<-1
+contadordos<-1
+suma2<-0
+suma3<-0
+suma4<-0
+suma5<-0
+pp<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")
+#pp
+ppp<-pp%>%filter(categoria==3)
+#busca el elemento en la posicion 2 de la categria escogida anterioremente
+#ppp$cantidad[2]
+
+
+for (variable in unlist(pp[1])) {
+  if(variable==vectorArecorrer[1]){
+    #suma2<-suma2+pp$cantidad[contadoruno]
+    suma2<-suma2+ppp$cantidad[contadoruno]
+  }
+  if(variable==vectorArecorrer[2]){
+    suma3<-suma3+pp$cantidad[contadoruno]
+  }
+  if(variable==vectorArecorrer[3]){
+    suma4<-suma4+pp$cantidad[contadoruno]
+  }
+  if(variable==vectorArecorrer[4]){
+    suma5<-suma5+pp$cantidad[contadoruno]
+  }
+  contadoruno<-contadoruno+1
+  contadordos<-contadordos+1
+}
+
+```
+
+```{r promedio de aciertos por categoria, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, out.width='70%'}
+#install.packages("devtools")
+require(kableExtra)
+#devtools::install_github("ricardo-bion/ggradar",dependencies = TRUE)
+library(ggradar)
+library(dplyr)
+
+#promedio de aciertos obtenidas en la categoria 3 en por todos los grados
+dataflame2<-datos1%>%filter(categoria=="3")%>%select(cantidad)%>%summarise(mean(cantidad))
+#dataflame2
+#promedio de aciertos obtenidas en la categoria 3 en el grado 9b
+aaa<-datos1%>%filter(gradoCategoria=="grado9")%>%filter(categoria==3)%>%select(cantidad)%>%summarise(mean(cantidad))
+#aaa
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, out.width=5, out.height=3}
+#ciclo que recorre las categorias
+vectorArecorrer2<-c(1,2,3)
+#vectorArecorrer<-c("grado9","grado10a","grado10b","grado11")
+#contadoruno<-1
+#contadordos<-1
+#suma2<-0
+#suma3<-0
+#suma4<-0
+#suma5<-0
+#pp<-0
+
+#FILTRADO POR VARIABLES
+for (variable in vectorArecorrer2) {
+  if(variable==1){
+    variable1<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")%>%filter(categoria==variable)
+  }
+  if(variable==2){
+     variable2<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")%>%filter(categoria==variable)
+  }
+  if(variable==3){
+     variable3<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")%>%filter(categoria==variable)
+  }
+
+}
+
+#INICIAR VARIABLES
+uno<-1
+contt12<-0   #PARA EL GRADO 9A
+contt13<-0  #PARA EL GRADO 10a
+contt14<-0   #PARA EL GRADO 10b
+contt15<-0  #PARA EL GRADO 11
+
+#SUMA LA CANTIDAD DE RESPUESTAS  DE LA VARIABLE 3 POR GRUPO
+for(v in unlist(variable3[1])){
+ if(v=="grado9"){
+    contt12<-contt12+variable3$cantidad[uno]
+ }
+  if(v=="grado10a"){
+    contt13<-contt13+variable3$cantidad[uno]
+  }
+   if(v=="grado10b"){
+    contt14<-contt14+variable3$cantidad[uno]
+   }
+  if(v=="grado11"){
+    contt15<-contt15+variable3$cantidad[uno]
+  }
+  uno<-uno+1
+}
+#INICIAR VARIABLES
+contarVariable2<-1
+sumaVariable2<-0
+sumaVariable2b<-0
+sumaVariable2c<-0
+sumaVariable2d<-0
+
+#SUMA LA CANTIDAD DE RESPUESTAS  DE LA VARIABLE 2 POR GRUPO
+for(vv in unlist(variable2[1])){
+ if(vv=="grado9"){
+   sumaVariable2<-sumaVariable2+variable2$cantidad[contarVariable2]
+ }
+  if(vv=="grado10a"){
+   sumaVariable2b<-sumaVariable2b+variable2$cantidad[contarVariable2]
+  }
+  if(vv=="grado10b"){
+   sumaVariable2c<-sumaVariable2c+variable2$cantidad[contarVariable2]
+  }
+  if(vv=="grado11"){
+   sumaVariable2d<-sumaVariable2d+variable2$cantidad[contarVariable2]
+ }
+  contarVariable2<-contarVariable2+1
+}
+#INICIAR VARIABLES
+contarVariable1<-1
+sumaVariable1<-0
+sumaVariable1b<-0
+sumaVariable1c<-0
+sumaVariable1d<-0
+
+#SUMA LA CANTIDAD DE RESPUESTAS  DE LA VARIABLE 1 POR GRUPO
+for(ww in unlist(variable1[1])){
+ if(ww=="grado9"){
+   sumaVariable1<-sumaVariable1+variable1$cantidad[contarVariable1]
+ }
+  if(ww=="grado10a"){
+   sumaVariable1b<-sumaVariable1b+variable1$cantidad[contarVariable1]
+  }
+  if(ww=="grado10b"){
+   sumaVariable1c<-sumaVariable1c+variable1$cantidad[contarVariable1]
+  }
+  if(ww=="grado11"){
+   sumaVariable1d<-sumaVariable1d+variable1$cantidad[contarVariable1]
+ }
+  contarVariable1<-contarVariable1+1
+}
+
+
+#CANITDAD TOTAL DE PREGUNTAS (CONTAR ESTUDIANTES*GRADO*CATEGORIA) DE LA VARIABLE 3 POR GRADOS
+#cantidad de preguntas por variable y grado
+#grado 9a
+variable9ac3<-funcionConta("grado9",3)
+variable9aC2<-funcionConta("grado9",2)
+variable9aC1<-funcionConta("grado9",1)
+#grado 10a
+variable9bC3<-funcionConta("grado10a",3)
+variable9bC2<-funcionConta("grado10a",2)
+variable9bC1<-funcionConta("grado10a",1)
+#variable 10b
+variable10c3<-funcionConta("grado10b",3)
+variable10c2<-funcionConta("grado10b",2)
+variable10c1<-funcionConta("grado10b",1)
+#variable 11
+variable11c3<-funcionConta("grado11",3)
+variable11c2<-funcionConta("grado11",2)
+variable11c1<-funcionConta("grado11",1)
+
+
+#cantidad de aciertpos por categoria por categoria3
+#print("variable 3")
+contt12<-round(contt12/unlist(variable9ac3),2)  #cantidad de aciertos grado 9a
+contt13<-round(contt13/unlist(variable9bC3),2)   #cantidad de aciertos grado 10A
+contt14<-round(contt14/unlist(variable10c3),2)  #cantidad de aciertos grado 10B
+contt15<-round(contt15/unlist(variable11c3),2) #cantidad de aciertos grado 11
+
+#print("variable 2")
+sumaVariable2<-round(sumaVariable2/unlist(variable9aC2),2)
+sumaVariable2b<-round(sumaVariable2b/unlist(variable9bC2),2)
+sumaVariable2c<-round(sumaVariable2c/unlist(variable10c2),2)
+sumaVariable2d<-round(sumaVariable2d/unlist(variable11c2),2)
+
+#print("variable 1")
+sumaVariable1<-round(sumaVariable1/unlist(variable9aC1),2)
+sumaVariable1b<-round(sumaVariable1b/unlist(variable9bC1),2)
+sumaVariable1c<-round(sumaVariable1c/unlist(variable10c1),2)
+sumaVariable1d<-round(sumaVariable1d/unlist(variable11c1),2)
+
+
+#datos
+dataframevariables<-data.frame(evaluadosGrados,c(sumaVariable1,sumaVariable1b,sumaVariable1c,sumaVariable1d),c(sumaVariable2,sumaVariable2b,sumaVariable2c,sumaVariable2d),c(contt12,contt13,contt14,contt15))
+colnames(dataframevariables) <- c("Grupo", c(NombreVariable1,NombreVariable2,NombreVariable3)) #se puede usar paste("variable",1:3) para indicar una seceuncia que inicie con la palabra variabel del 1 al 3
+
+#Tabla generada #2
+kable(dataframevariables,caption = "\\label{tabla05}En esta tabla")%>%kable_styling(latex_options = c("striped",c("scale_down")))
+#%>%footnote(general="Elaboración propia.")
+
+
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, out.width='70%'}
+funcion_promedioCategoria<-function(gradov){
+  ar<-dataframevariables%>%filter(Grupo==gradov)
+  media<-ar[1,2:4]
+  media
+}
+#calcula la media
+#mediacategoria9<-rowMeans(funcion_promedioCategoria("grado9"))
+
+vectorCategorias<-c()
+for (i in evaluadosGrados){
+    vectorCategorias<-c(vectorCategorias, rowMeans(funcion_promedioCategoria(i)))
+}
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, out.width='70%'}
+#ENCONTRAR EL VALOR CON VALOR PROMEDIO MAYOR
+
+#le da nombre al vector con el promedio por categoria
+nombre<-evaluadosGrados
+
+
+# Encontrar la posición del valor máximo
+posicion_maxima <- which.max(vectorCategorias)
+posicion_titulos <- nombre[posicion_maxima]
+#posicion_titulos
+# Encontrar la posición del valor minimo
+posicion_minima <- which.min(vectorCategorias)
+posicion_titulos2 <- nombre[posicion_minima]
+#posicion_titulos2
+```
+
+```{r NO OBSERVABLE, echo=FALSE, eval=FALSE, include=FALSE}
+#CANTIDAD DE ESTUDIANTES POR GRAGO:
+
+cantidadDeestudiantesgrado<-datos1%>%select(grado,categoria)%>%filter(grado=="grado9")%>%count()
+cantidadDeestudiantesgrado
+
+cantidadDePreguntasPorCategoriayGrado<-datos1%>%select(gradoCategoria,categoria)%>%filter(gradoCategoria=="grado9",categoria==3)%>%count()
+
+cantidadEvaluadosVariable3<-datos1%>%select(gradoCategoria,categoria,cantidad)%>%filter(gradoCategoria!="NA")%>%filter(categoria==3)
+#cantidadTotalPreguntaGrado
+cantidadTotalPreguntaGrado<-cantidadDePreguntasPorCategoriayGrado*cantidadDeestudiantesgrado
+
+```
+
+```{r echo=FALSE,warning=FALSE}
+#variable 1
+posicionMayorVariable1<-which.max(c(sumaVariable1,sumaVariable1b,sumaVariable1c,sumaVariable1d))
+posicionMenorVariable1<-which.min(c(sumaVariable1,sumaVariable1b,sumaVariable1c,sumaVariable1d))
+#variable 2
+posicionMayorVariable2<-which.max(c(sumaVariable2,sumaVariable2b,sumaVariable2c,sumaVariable2d))
+posicionMenorVariable2<-which.min(c(sumaVariable2,sumaVariable2b,sumaVariable2c,sumaVariable2d))
+#variable 3
+posicionMayorVariable3<-which.max(c(contt12,contt13,contt14,contt15))
+posicionMenorVariable3<-which.min(c(contt12,contt13,contt14,contt15))
+
+```
+
+Se evidencia que la **`r NombreVariable1`** tuvo mayor nivel de aprobación en el `r dataframevariables$Grupo[posicionMayorVariable1]` con `r max(dataframevariables[2])*100`%, por su parte el mayor nivel de desaprovación se presento en el `r dataframevariables$Grupo[posicionMenorVariable1]` con `r min(dataframevariables[2])*100`%. al evaluar la **`r NombreVariable2`** se evidencia mayor nivel de aprobación en el **`r dataframevariables$Grupo[posicionMayorVariable2]`** con `r max(dataframevariables[3])*100`%, por su parte el mayor nivel de desaprovación se presento en el `r dataframevariables$Grupo[posicionMenorVariable2]` con `r min(dataframevariables[3])*100`%. por ultmimo se evidencia que al evaluar la **`r NombreVariable3`** se evidencia mayor nivel de aprobación en el `r dataframevariables$Grupo[posicionMayorVariable3]` con `r max(dataframevariables[4])*100`%, por su parte el mayor nivel de desaprovación se presento en el grado `r dataframevariables$Grupo[posicionMenorVariable3]` con `r min(dataframevariables[4])*100`%
+
+```{r echo=FALSE, out.width = '70%', fig.cap="grafico de radar, resultados de componentes por grados", eval=FALSE, results=FALSE}
+#library(ggradar))
+#, fig.dim = c(4, 6)
+graficoRadar2<-ggradar(dataframevariables, 
+      values.radar = c(0, 0.5, 1),
+      legend.title = "variables", 
+      background.circle.colour="white", 
+      axis.line.colour = "red", 
+      gridline.min.colour = "blue",
+      gridline.mid.colour = "#eea236", 
+      gridline.max.colour ="#5cb85c",
+      grid.label.size = 5,  # Affects the grid annotations (0%, 50%, etc.)
+      axis.label.size = 4, # Afftects the names of the variables
+      group.point.size = 3   # Simply the size of the point
+  )
+graficoRadar2<-graficoRadar2 + 
+#labs(title = "grafico de radar, resultados de componentes por grados") + 
+theme(
+    #plot.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
+    #panel.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
+    plot.title.position = "plot", # slightly different from default
+    plot.title = element_text(
+      size = 14,
+      face = "bold", 
+      color = "#2a475e"
+  ),
+  legend.position = c(1, 1),  
+  legend.justification = c(0.6, 1.1),
+  legend.text = element_text(size = 10),
+  legend.key = element_rect(fill = NA, color = NA),
+  legend.background = element_blank()
+)
+graficoRadar2
+```
+
+```{r  echo=FALSE, out.width = '70%', eval=FALSE,warning=FALSE}
+#install.packages("fmsb")
+library(fmsb)
+titulos<-c(ventorcantidad$cantidad[1], ventorcantidad$cantidad[2], ventorcantidad$cantidad[3])
+
+categoriauno<-c(1,0,sumaVariable1,sumaVariable1b,sumaVariable1c,sumaVariable1d)
+categoriados<-c(1,0,sumaVariable2,sumaVariable2b,sumaVariable2c,sumaVariable2d)
+categoriatres<-c(1,0,contt12,contt13,contt14,contt15)
+
+
+
+
+dataflame<-data.frame(categoriauno,categoriatres,categoriados)
+#names(dataflame)<-titulos
+
+areas <- c(rgb(1, 0, 0, 0.25),
+           rgb(0, 1, 0, 0.25),
+           rgb(0, 0, 1, 0.25),
+           rgb(0, 1, 1, 0.25))
+
+radarchart(dataflame, 
+           cglty = 1,
+           title = "Grafico de radar", 
+           pcol = 2:4,
+           cglcol="gray", 
+           plwd=2, 
+           axistype = 3, #agrega porcentajes a las lineas
+           pty = 15,        # tipo de punto
+           #pfcol = areas
+           vlabels = titulos,
+           plty=1,
+            xlim=c(-1, 1), ylim=c(-1, 1.3), pch=22, #alinea la grafica en la ventana
+           )
+
+legend("topright",
+       legend = paste(evaluadosGrados),
+       bty = "n", pch = 20, col = areas,
+       text.col = "grey25", pt.cex = 2)
+
+```
+
+```{r BUSCA LA COMPETENCIA CON MENOR NUMERO DE ACIERTOS, echo=FALSE, results=FALSE}
+competenciasBuscarMenor<-c(summ,summ2,summ3)
+comptenciasBuscarNombre<-c(NombreVariable1,NombreVariable2,NombreVariable3)
+
+ubicacion<-which.min(competenciasBuscarMenor)
+for (variable in competenciasBuscarMenor) {
+  if (variable == min(competenciasBuscarMenor)){
+    menorCopetencia<-comptenciasBuscarNombre[ubicacion]
+  }
+  
+}
+```
+
+```{r BUSCA EL MENOR PROMEDIO POR GRADO, echo=FALSE, eval=FALSE, results=FALSE,warning=FALSE}
+
+funcionContaMenorGradoAciertos2<-function(gradov){
+  menorPromedio<-datos1%>%select(res, grado)
+  promedios <- c()
+  contador2<-1
+  for (j in menorPromedio$grado){
+    
+    if(j == gradov){
+      promedios<-c(promedios, menorPromedio$res[contador2])
+      
+    }
+    contador2<-contador2+1
+    
+    
+  }
+  definitivaz<-round(mean(promedios),digits=2)
+  definitivaz
+  
+}
+
+#funcionContaMenorGradoAciertos2("grado9")
+#funcionContaMenorGradoAciertos2("grado11")
+
+```
+
+```{r REALIZA LO MISMO QUE EL CODIGO ANTERIOR PERO EN MENOS LINEAS Y  VALOR BUSCADO LA MEDIANA NO LA MEDIA, echo=FALSE, results=FALSE}
+funcionContaMenorGradoAciertos<-function(gradov){
+  menorPromedio<-datos1%>%select(res, grado)%>%filter(grado==gradov)
+  median(menorPromedio$res)
+  
+}
+grado1aa<-funcionContaMenorGradoAciertos("grado9")
+grado1bb<-funcionContaMenorGradoAciertos("grado10a")
+grado1cc<-funcionContaMenorGradoAciertos("grado10b")
+grado1dd<-funcionContaMenorGradoAciertos("grado11")
+```
+
+```{r GRADO CON MAYOR PROMEIDIO, results=FALSE, echo=FALSE, results='hide',warning=FALSE}
+PromediosPorgrado<-data.frame(promedio=c(grado1aa,grado1bb,grado1cc,grado1dd), names=c("grado 9", "grado 10a", "grado 10b", "grado 11"))
+
+maxxi<-max(PromediosPorgrado$promedio)
+minni<-min(PromediosPorgrado$promedio)
+PromediosPorgrado
+minni
+gradoValorMaximoYminimoz<-function(maximoominimo){
+  Gradovalormaximo<-""
+  contador<-1
+  for (i in PromediosPorgrado$promedio){
+    if (i==maximoominimo ){
+      Gradovalormaximo<-PromediosPorgrado$names[contador]
+    }
+    contador <-contador+1
+  
+  }
+  Gradovalormaximo
+}
+
+#gradoValorMaximoYminimoz(maxxi)
+#gradoValorMaximoYminimoz(minni)
+
+```
+
+```{r results=FALSE, echo=FALSE, results='hide',warning=FALSE}
+#hacer diagramas de venn
+#https://r-charts.com/es/parte-todo/ggvenndiagram/
+```
+
+```{r  echo=FALSE, results='hide',warning=FALSE}
+ie<-c()
+cantidaddePensamientos<-1
+for (i in c(1:length(pensamientosEvaluados)))
+  {
+  ie<-c(ie,pensamientosEvaluados[i])
+  cantidaddePensamientos<-cantidaddePensamientos+1
+}
+```
+
+# Parte VIII: Analisis de por competencia
+
+## Distribucion de preguntas por pensamientos
+
+Se evaluaron los resultados en los `r length(pensamientosEvaluados)` pensamientos: `r ie`, fundamentales para el desarrollo del área de matemáticas. La distribucion de las preguntas de acuerdo a los pensamientos y la cantidad de preguntas por pensamientos se muestran en las siguientes graficas (respectivamente):
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure5} categoaria de las preguntas",fig.width=5, fig.height=3}
+##################################################
+#GENERANDO LA FUNCION PARA GRAFICOS
+###################################################
+
+funcionCategoriaGantidad<-function(gradov){
+  variable1<-datos1%>%select(pensamiento,pregunta,gradoCategoria)%>%filter(gradoCategoria==gradov)
+ ggplot(data = datos1%>%filter(gradoCategoria==gradov),aes(x =factor(pregunta) , y=factor(pensamiento)) )+ 
+  geom_point()+ylab("categoria")+xlab("pregunta")+
+  labs(title = gradov)
+  
+
+}
+
+df1<-funcionCategoriaGantidad("grado9")
+df2<-funcionCategoriaGantidad("grado10a")
+df3<-funcionCategoriaGantidad("grado10b")
+df4<-funcionCategoriaGantidad("grado11")
+
+library(gridExtra)
+#grid.arrange(df1, df2, df3, df4, nrow = 2, ncol = 2, top = "Comparación de categorías por pregunta", bottom = "año 2023")
+
+#OTRA FORMA DE HACERLO.
+
+variable1<-datos1%>%select(pensamiento,pregunta,gradoCategoria)%>%filter(gradoCategoria!="NA",pensamiento!="NA",pregunta!="NA")
+
+graficobarratipoIV<-ggplot(data = variable1 )+ geom_point(aes(x =factor(pregunta) , y=factor(pensamiento), color=gradoCategoria))+ylab("categoria")+xlab("pregunta")+facet_wrap(~ gradoCategoria, nrow = 2) +
+  labs(
+            title = "competencia de las preguntas por grado",
+            caption = "cada grado presenta variacion en el número \n de preguntas por categoria solo siendo comparables los \n resultados en grados con diferentes grupos" ) +
+  scale_fill_brewer(palette = "YlOrRd")+
+theme_bw() +
+       theme(legend.position = "none")
+  
+```
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure6} Resultados por grado",fig.width=5, fig.height=3}
+graficoPuntoTipoIII<-ggplot(datos1, aes(x=pensamiento, fill=gradoCategoria)) +      #1
+  geom_bar()+                                          #2
+  labs(x= "categorias",  y="Frecuencias", fill="gradoCategoria") +  #3 
+  scale_fill_discrete(name = "Componente") +
+  ylim(c(0,25))  +                  #4   
+  #xlim(c(0,300)) +                  #4
+  ggtitle("cantidad e preguntas por grado (todos los grados)") +    #5
+  coord_flip() +                    #6
+  #theme_bw() +                      #7
+  theme_bw(base_size = 6)        +   #7
+facet_wrap(~"cantidad de variables por grado")
+#+theme(legend.position = "botto")
+  
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure4} Resultados por grado",out.width = '100%', fig.height=3}
+library(ggpubr)
+ggarrange( graficoPuntoTipoIII,graficobarratipoIV, 
+  ncol = 2,       nrow = 1 ,
+          common.legend = TRUE, legend = "bottom"     )
+```
+
+## Resultados por pensamiento
+
+Al evaluar los resultados obtenidos por pensamiento en cada uno de los grados evaluados, se observan los siguientes resultados (tabla 5):
+
+```{r  echo=FALSE, message=FALSE, error=FALSE, warning=FALSE }
+######################################################
+#FUNCION QUE PERMITE CONTAR LA CANTIDAD DE PREGUNTAS QUE CUMPLEN CON DOS CRITERIOS
+#CATEGORIA Y GRADOSCATEGORIA (DE LAS 20 PREGUNTAS)
+################################################
+# Crear un array con tres dimensiones
+array3 <- datos1[43:48]%>%filter(cantidad!="NA")
+#CANTIDAD DE DATOS
+VCV<-datos1%>%filter(pensamiento!="NA")
+
+cantidadDatoss<-length(VCV$pensamiento)
+
+# Crear una función que cuente y clasifique las preguntas en el array
+contar_clasificar3 <- function(array3, pensamiento, gradoCategoria) {
+    # Inicializar un contador en cero
+    contador <- 0
+    # Recorrer el array con un bucle for anidado
+    for (i in 1:cantidadDatoss) 
+    {
+      if(array3[i,6]==pensamiento && array3[i,5] == gradoCategoria){
+       
+          # Incrementar el contador en uno
+          contador <- contador + 1
+      }
+    }
+    
+    # Retornar el valor del contador
+    return(contador)
+}
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+#CANITDAD TOTAL DE PREGUNTAS (CONTAR ESTUDIANTES*GRADO*CATEGORIA) DE LA VARIABLE 3 POR GRADOS
+#cantidad de preguntas por variable y grado
+
+
+variableA2023<-c()
+variableB2023<-c()
+variableC2023<-c()
+variableD2023<-c()
+for (i in evaluadosGrados){
+  if (i=="grado9"){
+     for (j in c(1:5)){
+    variableA2023<-c(variableA2023,contar_clasificar3(array3, j, i))
+     }
+  }
+  if (i=="grado10a"){
+     for (j in c(1:5)){
+    variableB2023<-c(variableB2023,contar_clasificar3(array3, j, i))
+     }
+  }
+  if (i=="grado10b"){
+     for (j in c(1:5)){
+    variableC2023<-c(variableC2023,contar_clasificar3(array3, j, i))
+     }
+  }
+  if (i=="grado11"){
+     for (j in c(1:5)){
+    variableD2023<-c(variableD2023,contar_clasificar3(array3, j, i))
+     }
+    }
+  
+}
+
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+array4<-datos1[43:47]%>%filter(grado!="NA")
+###########################
+#contar la cantidad de estudiantes por grado
+####################
+contar_clasificar22 <- function(array4, grado) {
+    # Inicializar un contador en cero
+    contador <- 0
+    for (i in 1:length(DatosUsar)){
+      if(array4[i,4]==grado){
+        contador<-contador+1
+      }
+    }
+    return(contador)
+}
+
+#########
+#cantidad de preguntas por categoria
+A9<-variableA2023*contar_clasificar22(array4,"grado9")
+B10<-variableB2023*contar_clasificar22(array4,"grado10a")
+C10<-variableC2023*contar_clasificar22(array4,"grado10b")
+D11<-variableD2023*contar_clasificar22(array4,"grado11")
+
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+datos23<-datos1%>%select(pregunta,cantidad,gradoCategoria,pensamiento)%>%filter(gradoCategoria!="NA")
+
+#cantidad de respuestas correctas
+pensamiento1grado9<-c()
+pensamiento1grado10a<-c()
+pensamiento1grado10b<-c()
+pensamiento1grado11<-c()
+
+  for (j in evaluadosGrados){
+    for (i in c(1:5)){
+      if (j == "grado9"){
+          pensamiento1grado9<-c(pensamiento1grado9,sum(datos23$cantidad[datos23$pensamiento==i & datos23$gradoCategoria=="grado9"]))
+          }
+        else if  (j =="grado10a"){
+            pensamiento1grado10a<-c(pensamiento1grado10a,sum(datos23$cantidad[datos23$pensamiento==i & datos23$gradoCategoria=="grado10a"]))
+          }else if  (j =="grado10b"){
+            pensamiento1grado10b<-c(pensamiento1grado10b,sum(datos23$cantidad[datos23$pensamiento==i & datos23$gradoCategoria=="grado10b"]))
+          }else {
+            pensamiento1grado11<-c(pensamiento1grado11,sum(datos23$cantidad[datos23$pensamiento==i & datos23$gradoCategoria=="grado11"]))
+    }
+  }
+}
+
+```
+
+```{r echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+###################################################
+#promedio de respuestas correctas por categoria 
+###################################################
+#grado 9
+resultadoSa<-pensamiento1grado9/A9
+
+#grado 10a
+resultadoSb<-pensamiento1grado10a/B10
+
+#grado 10b
+resultadoSc<-pensamiento1grado10b/C10
+
+#grado 11}
+resultadoSd<-pensamiento1grado11/D11
+
+
+dataframeResultados<-round(data.frame(c(1:5),resultadoSa,resultadoSb,resultadoSc,resultadoSd),2)
+colnames(dataframeResultados)<-c("pensamiento","grado9","grado10a","grado10b","grado11")
+
+#Tabla generada #2
+kable(dataframeResultados,caption = "\\label{tabla06}En esta tabla")%>%kable_styling(latex_options = c("striped", "HOLD_position",c("scale_down")))%>%footnote(general="Elaboración propia.")
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, results='hide', fig.cap = "\\label{fig:myfigure7} Resultados por grado",fig.width=3, fig.height=3}
+
+#da la posicion del mayor  y menor pensamiento por grado
+#grado 9
+posicionMayorVariable1V2<-which.max(dataframeResultados$grado9)
+posicionMenorVariable1V2<-which.min(dataframeResultados$grado9)
+#grado 10a
+posicionMayorVariable2V2<-which.max(dataframeResultados$grado10a)
+posicionMenorVariable2V2<-which.min(dataframeResultados$grado10a)
+#variable 3
+posicionMayorVariable3V2<-which.max(dataframeResultados$grado10b)
+posicionMenorVariable3V2<-which.min(dataframeResultados$grado10b)
+#variable 4
+posicionMayorVariable4V2<-which.max(dataframeResultados$grado11)
+posicionMenorVariable4V2<-which.min(dataframeResultados$grado11)
+```
+
+En el grafico se observa que para el **`r evaluadosGrados[1]`** el pensamiento **`r pensamientosEvaluados[posicionMayorVariable1V2]`** tuvo el mayor resultado, por su parte el **`r pensamientosEvaluados[posicionMenorVariable1V2]`** obtuvo los resultados mas bajos; el **`r evaluadosGrados[2]`** el pensamiento **`r pensamientosEvaluados[posicionMayorVariable2V2]`** obtuvo el mayor resultado el **`r pensamientosEvaluados[posicionMenorVariable2V2]`** tuvo los resultados mas bajo, el `r evaluadosGrados[3]` el pensamiento `r pensamientosEvaluados[posicionMayorVariable3V2]` tuvo el mayor resultado el `r pensamientosEvaluados[posicionMenorVariable3V2]` tuvo los resultados mas bajo. por ultimo el **`r evaluadosGrados[4]`** el pensamiento **`r  pensamientosEvaluados[posicionMayorVariable4V2]`** tuvo los resultados mas altos y el pensamiento `r pensamientosEvaluados[posicionMenorVariable4V2]` obtuvo el resultado más bajo.
+
+# Parte IX: Conclusiones finales
+
+En conclusión, los resultados obtenidos en la evaluación parcial del **`r periodoD`** indican rendimientos promedios clasificados como **`r if(media>3){ "BUENO"} else {"BAJO"}`** en el total de los estudiantes evaluados. con mas de la mitad de evaluados en esta categoria.
+
+En promedio, el grado con menor desarrollo de las competencias de su grado fue el `r posicion_titulos2`. Por su parte el grado con un promedio mas alto en las competencias evaluadas es `r posicion_titulos`. Además, se observa una mayor necesidad de fortalecimiento en la competencia **`r menorcantidadDeAciertos`**, al ser la que menor porcentaje de aciertos de todas las categorias evaluadas.
+
+Al evaluar los resultados promedios de las notas por grado se evidencia que el **`r gradoValorMaximoYminimoz(maxxi)`** obtuvo los mejores resultadosg, mientras que el **`r gradoValorMaximoYminimoz(minni)`** presentó los mayores niveles de desaprobación.
+
+al evaluar los resultados promedio de los pensamientos evaluados se conserva el grado 9 como el grado con mas bajo nivel de apropiación y al grado 10 y 11 con mayores grados de apropiación.
+
+Es importante destacar que estos resultados pueden ser utilizados para diseñar estrategias de mejora en el aprendizaje de los estudiantes en el área de matemáticas.

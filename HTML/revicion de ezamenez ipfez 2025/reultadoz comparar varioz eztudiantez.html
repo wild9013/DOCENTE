@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Resultados Estudiantiles</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+        .chart-container, .deepl-container {
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .selector-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .selector-container label {
+            font-weight: 600;
+            color: #525f7f;
+            margin-right: 10px;
+        }
+        #student-selector {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            font-size: 16px;
+            background-color: #fff;
+            min-width: 300px;
+        }
+        .selector-instructions {
+            font-size: 12px;
+            color: #8898aa;
+            margin-top: 5px;
+            text-align: center;
+        }
+        #deepl-button {
+            display: block;
+            margin: 0 auto;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(45deg, #0d2b4f, #1a56db);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(13, 43, 79, 0.2);
+        }
+        #deepl-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(13, 43, 79, 0.3);
+        }
+        #deepl-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        #deepl-response {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            color: #525f7f;
+            text-align: justify;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #1a56db;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a56db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .language-selector {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .language-selector label {
+            font-weight: 600;
+            color: #525f7f;
+            margin-right: 10px;
+        }
+        #target-language {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <h1>Distribución de Notas por Materia</h1>
+            <div class="selector-container">
+                <label for="student-selector">📊 Comparar resultados de:</label>
+                <select id="student-selector" multiple size="5"></select>
+                <p class="selector-instructions">Mantén Ctrl (o Cmd en Mac) para seleccionar varios estudiantes.</p>
+            </div>
+            <div id="boxPlot"></div>
+        </div>
+
+        <div class="deepl-container">
+            <button id="deepl-button">🌍 Traducir Análisis</button>
+            <div class="language-selector">
+                <label for="target-language">Idioma destino:</label>
+                <select id="target-language">
+                    <option value="EN">Inglés</option>
+                    <option value="FR">Francés</option>
+                    <option value="DE">Alemán</option>
+                    <option value="IT">Italiano</option>
+                    <option value="PT">Portugués</option>
+                    <option value="NL">Holandés</option>
+                    <option value="JA">Japonés</option>
+                    <option value="ZH">Chino</option>
+                </select>
+            </div>
+            <div id="loader" class="loader"></div>
+            <div id="deepl-response"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS ---
+        const estudiantes = [
+            "FREIDY ANDRES TERAN MARQUEZ", "WILSHER ANDRES NESTRA MATIA", "LUISA FERNANDA PARRA PEÑATE",
+            "JUAN LUIS JARAMILLO ARIZA", "ANDRES FELIPE RESTREPO GOENAGA", "JUAN ESTIVEN MORENO GUZMAN",
+            "CAROLINA VALENCIA CALDERON", "EMMANUEL PARRA DURANGO", "YIRIS YIRLEI ECHAVARRIA GAVIRIA",
+            "MARIA ALEJANDRA ORDOÑEZ PEREIRA", "DARLENIS JIMENEZ RUIZ", "JHONATAN DAVID DIAZ ALVAREZ",
+            "EZEQUIEL CASTEBONDE GARCIA", "YOIDER ALEXANDER ARIZA TORO", "VIVIANA MARIA BASILIO VASQUEZ",
+            "ROSMI ANGEL ROSARIO", "LUIS ALBERTO VIZCAINO MACHADO", "EDIER ANDRES BARON CHAVERRA",
+            "NAYIDIS MERCADO PERTUZ", "YAXEN CORDOBA PEREZ", "AIDER ROMERO BANQUET"
+        ];
+        const lectura =    [59, 61, 63, 54, 58, 54, 48, 47, 42, 52, 53, 50, 45, 43, 48, 42, 38, 39, 37, 38, 33];
+        const matematica = [68, 60, 66, 60, 42, 48, 35, 46, 40, 32, 36, 47, 41, 44, 36, 33, 49, 40, 27, 38, 32];
+        const sociales =   [50, 62, 51, 52, 45, 40, 46, 42, 44, 37, 33, 38, 33, 31, 34, 43, 29, 35, 39, 31, 39];
+        const cienciasN =  [55, 54, 52, 43, 53, 47, 52, 43, 41, 46, 43, 35, 44, 45, 39, 38, 36, 32, 39, 35, 36];
+        const ingles =     [71, 48, 62, 27, 46, 40, 53, 46, 49, 41, 42, 28, 39, 30, 40, 28, 30, 38, 43, 31, 30];
+        
+        // --- CONFIGURACIÓN DEL GRÁFICO ---
+        const materias = [
+            { nombre: 'Lectura', datos: lectura },
+            { nombre: 'Matemática', datos: matematica },
+            { nombre: 'Sociales', datos: sociales },
+            { nombre: 'Ciencias N', datos: cienciasN },
+            { nombre: 'Inglés', datos: ingles }
+        ];
+
+        const colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A'];
+
+        const boxTraces = materias.map((materia, index) => ({
+            y: materia.datos,
+            type: 'box',
+            name: materia.nombre,
+            text: estudiantes,
+            hoverinfo: 'y+text',
+            boxpoints: 'all',
+            jitter: 0.5, 
+            pointpos: 0,
+            marker: { color: colors[index], size: 6, opacity: 0.6 },
+            line: { width: 2 }
+        }));
+        
+        const meanTrace = {
+            x: materias.map(m => m.nombre),
+            y: materias.map(m => m.datos.reduce((a, b) => a + b, 0) / m.datos.length),
+            text: materias.map(m => `Media: ${(m.datos.reduce((a, b) => a + b, 0) / m.datos.length).toFixed(2)}`),
+            hoverinfo: 'text',
+            mode: 'markers',
+            type: 'scatter',
+            name: 'Media',
+            showlegend: false,
+            marker: { symbol: 'diamond', color: '#2c3e50', size: 8, line: { color: 'white', width: 1 } }
+        };
+
+        const data = [...boxTraces, meanTrace];
+        
+        const layout = {
+            title: false,
+            font: { family: 'Inter, sans-serif', size: 12, color: '#525f7f' },
+            paper_bgcolor: 'white',
+            plot_bgcolor: '#fdfdff',
+            yaxis: { title: { text: 'Puntajes', font: { size: 14, color: '#2c3e50' } }, gridcolor: '#e9ecef', zeroline: false },
+            xaxis: { gridcolor: '#e9ecef' },
+            margin: { l: 60, r: 30, b: 60, t: 30 },
+            showlegend: true
+        };
+        
+        Plotly.newPlot('boxPlot', data, layout, {responsive: true});
+
+        // --- CÓDIGO PARA EL SELECTOR INTERACTIVO ---
+        const studentSelector = document.getElementById('student-selector');
+
+        // Llenar la lista con los nombres de los estudiantes
+        estudiantes.forEach((student, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = student;
+            studentSelector.appendChild(option);
+        });
+
+        // NUEVA FUNCIÓN: Actualiza el gráfico para MOSTRAR VARIOS estudiantes
+        function updateStudentTraces() {
+            const plotDiv = document.getElementById('boxPlot');
+            
+            // 1. Limpiar todas las líneas de estudiantes existentes
+            // Los primeros (materias.length + 1) trazos son las cajas y la media. El resto son de estudiantes.
+            const numBaseTraces = materias.length + 1;
+            const numCurrentTraces = plotDiv.data.length;
+            if (numCurrentTraces > numBaseTraces) {
+                const tracesToDelete = [];
+                for (let i = numBaseTraces; i < numCurrentTraces; i++) {
+                    tracesToDelete.push(i);
+                }
+                Plotly.deleteTraces(plotDiv, tracesToDelete);
+            }
+
+            // 2. Obtener todos los estudiantes seleccionados
+            const selectedOptions = Array.from(this.selectedOptions);
+            const selectedIndices = selectedOptions.map(option => parseInt(option.value, 10));
+
+            // Paleta de colores para las líneas de los estudiantes
+            const studentLineColors = ['#FFD700', '#FF4136', '#0074D9', '#2ECC40', '#B10DC9', '#FF851B', '#F012BE'];
+
+            // 3. Añadir una línea por cada estudiante seleccionado
+            selectedIndices.forEach((selectedIndex, i) => {
+                const studentName = estudiantes[selectedIndex];
+                const studentScores = materias.map(materia => materia.datos[selectedIndex]);
+                
+                // Asignar un color de la paleta, ciclando si hay más estudiantes que colores
+                const traceColor = studentLineColors[i % studentLineColors.length];
+
+                const studentTrace = {
+                    x: materias.map(m => m.nombre),
+                    y: studentScores,
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    name: studentName,
+                    line: {
+                        color: traceColor,
+                        width: 3,
+                        dash: 'dot' // Estilo de línea para diferenciarla
+                    },
+                    marker: {
+                        symbol: 'star',
+                        size: 12,
+                        color: traceColor,
+                        line: {
+                            color: 'black',
+                            width: 1
+                        }
+                    }
+                };
+                Plotly.addTraces(plotDiv, studentTrace);
+            });
+        }
+        
+        // Activar la función cuando el usuario cambie la selección
+        studentSelector.addEventListener('change', updateStudentTraces);
+        
+        // --- CÓDIGO PARA LA INTEGRACIÓN CON DEEPL API ---
+        const deeplButton = document.getElementById('deepl-button');
+        const deeplResponseContainer = document.getElementById('deepl-response');
+        const loader = document.getElementById('loader');
+        const targetLanguageSelector = document.getElementById('target-language');
+
+        deeplButton.addEventListener('click', getDeepLAnalysis);
+
+        async function getDeepLAnalysis() {
+            deeplButton.disabled = true;
+            deeplResponseContainer.textContent = '';
+            loader.style.display = 'block';
+
+            // Texto que se va a traducir - análisis de los datos
+            const textToTranslate = `Análisis de Resultados Académicos
+
+RESUMEN DEL RENDIMIENTO:
+Basándonos en los datos de 21 estudiantes en 5 materias, observamos lo siguiente:
+
+- La materia con mejor rendimiento promedio es Lectura.
+- Matemáticas y Inglés muestran la mayor dispersión de resultados, indicando diferencias significativas en el aprendizaje de algunos estudiantes.
+- Ciencias Naturales y Sociales presentan los resultados más consistentes entre estudiantes.
+
+RECOMENDACIONES:
+1. Implementar estrategias diferenciadas en Matemáticas e Inglés para abordar las brechas de aprendizaje.
+2. Fomentar programas de refuerzo en las materias con promedios más bajos para mejorar el rendimiento general.
+3. Analizar los casos de alto rendimiento para identificar y compartir metodologías de estudio exitosas.
+
+DATOS ESTADÍSTICOS (PROMEDIOS):
+ * Lectura: ${(lectura.reduce((a, b) => a + b, 0) / lectura.length).toFixed(1)}
+ * Matemática: ${(matematica.reduce((a, b) => a + b, 0) / matematica.length).toFixed(1)}
+ * Sociales: ${(sociales.reduce((a, b) => a + b, 0) / sociales.length).toFixed(1)}
+ * Ciencias: ${(cienciasN.reduce((a, b) => a + b, 0) / cienciasN.length).toFixed(1)}
+ * Inglés: ${(ingles.reduce((a, b) => a + b, 0) / ingles.length).toFixed(1)}`;
+
+            try {
+                // IMPORTANTE: Reemplaza esto con tu API Key real de DeepL
+                const apiKey = "TU_API_KEY_DE_DEEPL_AQUI"; 
+                if (apiKey === "TU_API_KEY_DE_DEEPL_AQUI" || !apiKey) {
+                    throw new Error("API Key de DeepL no configurada. Por favor, obtén una clave en https://www.deepl.com/pro-api y reemplázala en el código.");
+                }
+                
+                const targetLang = targetLanguageSelector.value;
+                const translatedText = await callDeepLAPI(textToTranslate, targetLang, apiKey);
+                deeplResponseContainer.textContent = `🌍 Traducción al ${targetLanguageSelector.options[targetLanguageSelector.selectedIndex].text}:\n\n${translatedText}`;
+            } catch (error) {
+                deeplResponseContainer.textContent = 'Error al traducir el análisis. ' + error.message;
+                console.error("Error calling DeepL API:", error);
+            } finally {
+                deeplButton.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        async function callDeepLAPI(text, targetLang, apiKey, retries = 3, delay = 1000) {
+            const apiUrl = 'https://api-free.deepl.com/v2/translate';
+            
+            const payload = new URLSearchParams({
+                auth_key: apiKey,
+                text: text,
+                target_lang: targetLang,
+                source_lang: 'ES'
+            });
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: payload
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.translations && result.translations[0] && result.translations[0].text) {
+                        return result.translations[0].text;
+                    } else {
+                        throw new Error('Respuesta inesperada de la API de DeepL.');
+                    }
+                } catch (error) {
+                    console.error(`Intento ${i + 1} fallido:`, error);
+                    if (i < retries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

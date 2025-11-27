@@ -1,0 +1,185 @@
+INTRODUCCION:
+Texto para Diagnóstico Inicial de Comprensión Lectora
+Título: El árbol generoso 
+Había una vez un árbol enorme y frondoso que vivía en medio de un bosque. Este árbol no solo era conocido por su altura y su sombra acogedora, sino también por su generosidad. Cada verano, ofrecía sus frutos a los animales del bosque: manzanas dulces para los pájaros, nueces para las ardillas y hojas frescas para los ciervos. Un día, un niño llamado Lucas llegó al bosque. Lucas estaba triste porque había perdido su juguete favorito. Al verlo, el árbol le susurró: "Puedes descansar bajo mi sombra y comer mis frutos. Te ayudaré a sentirte mejor". Lucas aceptó y, poco a poco, su tristeza se convirtió en alegría. Desde ese día, Lucas visitaba al árbol todos los veranos, y el árbol siempre lo recibía con algo nuevo: un lugar para trepar, un refugio para la lluvia o simplemente una sonrisa.
+
+PREGUNTA 1
+¿Qué ofrecía el árbol a los animales del bosquhhhe?
+A) Agua y flores.
+B) Frutos, nueces y hojas. 
+C) Juguetes y sombra.
+D) Nada, solo sombra.
+RESPUESTA: B
+
+PREGUNTA 2
+¿Por qué Lucas estaba triste al llegar al bosque?
+A) Porque tenía hambre.
+B) Porque había perdido su juguete favorito.  ((x))
+C) Porque no tenía amigos.
+D) Porque estaba cansado.
+RESPUESTA: B
+
+PREGUNTA 3
+¿Qué podemos inferir sobre la personalidad del árbol?
+A) Era egoísta y solo pensaba en sí mismo.
+B) Era generoso y amable con los demás.  ((x))
+C) Era triste y solitario.
+D) Era indiferente a los problemas de los demás.
+RESPUESTA: B
+
+PREGUNTA 4
+¿Qué enseñanza principal deja el texto?
+A) Los árboles son importantes para el medio ambiente.
+B) La generosidad y la amabilidad pueden alegrar a los demás. ((x))
+C) Los niños siempre pierden sus juguetes.
+D) Los animales del bosque dependen de los árboles.
+RESPUESTA: B
+
+PREGUNTA 5
+¿Cuál es la intención del autor al escribir este texto?
+A) Informar sobre los tipos de árboles en un bosque.
+B) Enseñar una lección sobre la generosidad y la empatía.  ((x))
+C) Criticar a los niños que pierden sus juguetes.
+D) Describir la vida de los animales en el bosque.
+RESPUESTA: C
+
+PREGUNTA 6
+¿Qué argumento sustenta la idea de que el árbol es generoso?
+A) El árbol era enorme y frondoso.
+B) El árbol ofrecía frutos, nueces y hojas a los animales y ayudaba a Lucas. ((x)) 
+C) El árbol solo ayudaba a Lucas.
+D) El árbol no hacía nada por los demás.
+RESPUESTA: B
+
+INTRODUCCION:
+Texto para Diagnóstico Inicial de Comprensión Lectora
+Título: El árbol generoso 
+Había una vez un árbol enorme y frondoso que vivía en medio de un bosque. Este árbol no solo era conocido por su altura y su sombra acogedora, sino también por su generosidad. Cada verano, ofrecía sus frutos a los animales del bosque: manzanas dulces para los pájaros, nueces para las ardillas y hojas frescas para los ciervos. Un día, un niño llamado Lucas llegó al bosque. Lucas estaba triste porque había perdido su juguete favorito. Al verlo, el árbol le susurró: "Puedes descansar bajo mi sombra y comer mis frutos. Te ayudaré a sentirte mejor". Lucas aceptó y, poco a poco, su tristeza se convirtió en alegría. Desde ese día, Lucas visitaba al árbol todos los veranos, y el árbol siempre lo recibía con algo nuevo: un lugar para trepar, un refugio para la lluvia o simplemente una sonrisa.
+
+PREGUNTA 1
+¿Qué ofrecía el árbol a los animales del bosquhhhe?
+A) Agua y flores.
+B) Frutos, nueces y hojas. 
+C) Juguetes y sombra.
+D) Nada, solo sombra.
+RESPUESTA: B
+
+PREGUNTA 2
+¿Por qué Lucas estaba triste al llegar al bosque?
+A) Porque tenía hambre.
+B) Porque había perdido su juguete favorito.  ((x))
+C) Porque no tenía amigos.
+D) Porque estaba cansado.
+RESPUESTA: B
+
+PREGUNTA 3
+¿Qué podemos inferir sobre la personalidad del árbol?
+A) Era egoísta y solo pensaba en sí mismo.
+B) Era generoso y amable con los demás.  ((x))
+C) Era triste y solitario.
+D) Era indiferente a los problemas de los demás.
+RESPUESTA: B
+
+PREGUNTA 4
+¿Qué enseñanza principal deja el texto?
+A) Los árboles son importantes para el medio ambiente.
+B) La generosidad y la amabilidad pueden alegrar a los demás. ((x))
+C) Los niños siempre pierden sus juguetes.
+D) Los animales del bosque dependen de los árboles.
+RESPUESTA: B
+
+PREGUNTA 5
+¿Cuál es la intención del autor al escribir este texto?
+A) Informar sobre los tipos de árboles en un bosque.
+B) Enseñar una lección sobre la generosidad y la empatía.  ((x))
+C) Criticar a los niños que pierden sus juguetes.
+D) Describir la vida de los animales en el bosque.
+RESPUESTA: C
+
+PREGUNTA 6
+¿Qué argumento sustenta la idea de que el árbol es generoso?
+A) El árbol era enorme y frondoso.
+B) El árbol ofrecía frutos, nueces y hojas a los animales y ayudaba a Lucas. ((x)) 
+C) El árbol solo ayudaba a Lucas.
+D) El árbol no hacía nada por los demás.
+RESPUESTA: B
+
+INTRODUCCION:
+Un sistema de ecuaciones es un conjunto de dos o más ecuaciones con las mismas variables.((algebra.jpg))
+Los métodos de resolución incluyen: sustitución, igualación, reducción y gráfico.((metodos.jpg))
+
+PREGUNTA 1
+¿Cuál es la solución del sistema? 
+2x + y = 5
+x - y = 1
+A) x = 1, y = 3
+B) x = 2, y = 1 ((x))
+C) x = 3, y = -1
+D) x = 0, y = 5
+
+PREGUNTA 2
+¿Qué método usarías para resolver este sistema? 3x + 2y = 7  y = x - 1
+A) Reducción
+B) Igualación
+C) Sustitución ((x))
+D) Gráfico
+
+PREGUNTA 3
+¿Cuántas soluciones tiene un sistema incompatible?
+A) Ninguna ((x))
+B) Una
+C) Infinitas
+D) Dos
+
+PREGUNTA 4
+Resuelve por reducción:
+x + y = 4
+2x - y = 5
+A) x = 3, y = 1 ((x))
+B) x = 2, y = 2
+C) x = 4, y = 0
+D) x = 1, y = 3
+
+PREGUNTA 5
+¿Qué representa la solución de un sistema de ecuaciones?
+A) El punto donde se cortan las rectas ((x))
+B) La pendiente de las ecuaciones
+C) El término independiente
+D) La derivada de las funciones
+
+PREGUNTA 6
+Resuelve el sistema:
+3x + 2y = 4
+6x + 4y = 8
+A) x = 0, y = 2
+B) x = 1, y = 0.5
+C) Sistema compatible indeterminado ((x))
+D) Sistema incompatible
+
+PREGUNTA 7
+¿Qué valor de k hace al sistema incompatible?
+kx + y = 2
+4x + 2y = 5
+A) k = 1
+B) k = 2 ((x))
+C) k = 3
+D) k = 0.5
+
+PREGUNTA 8
+Resuelve gráficamente:
+y = 2x + 1
+y = -x + 4
+A) (1, 3) ((x))
+B) (2, 2)
+C) (3, 1)
+D) (0, 4)
+
+PREGUNTA 9
+Resuelve por igualación:
+y = 3x - 2
+y = -x + 6
+A) x = 2, y = 4 ((x))
+B) x = 1, y = 1
+C) x = 3, y = 7
+D) x = 0, y = 6
+

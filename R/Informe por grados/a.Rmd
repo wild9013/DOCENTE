@@ -1,0 +1,104 @@
+---
+title: "Untitled"
+author: "Docente Magister wilder salas mena"
+date: "2024-09-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Instala los paquetes si aún no lo has hecho
+#install.packages("pdftools")
+#install.packages("stringr")
+
+# Carga las librerías
+library(pdftools)
+library(stringr)
+
+# Ruta al archivo PDF
+pdf_file <- "archivo.pdf"
+
+# Extraer texto del PDF
+pdf_text <- pdf_text(pdf_file)
+
+# Función para extraer el nombre del estudiante (esto depende del formato exacto del PDF)
+extraer_nombre_estudiante <- function(texto_pdf) {
+  # Suponiendo que el nombre del estudiante está en la primera línea de la primera página
+  primer_linea <- str_split(texto_pdf[1], "\n")[[1]][1]
+  nombre <- str_extract(primer_linea, "Nombre: (.+)")  # Ajusta este patrón según el formato real
+  if (!is.na(nombre)) {
+    return(str_replace(nombre, "Nombre: ", ""))
+  } else {
+    return("Nombre no encontrado")
+  }
+}
+
+# Extraer nombre del estudiante
+nombre_estudiante <- extraer_nombre_estudiante(pdf_text)
+
+# Ver el nombre del estudiante (opcional)
+print(paste("Nombre del estudiante:", nombre_estudiante))
+
+# Definir respuestas correctas (ejemplo)
+respuestas_correctas <- list(
+  "Pregunta 1" = "Respuesta C",
+  "Pregunta 2" = "Respuesta A",
+  "Pregunta 3" = "Respuesta B"
+)
+
+# Función para procesar respuestas del PDF
+procesar_respuestas <- function(texto_pdf) {
+  # Divide el texto por preguntas (esto depende del formato exacto del PDF)
+  preguntas <- str_split(texto_pdf, "Pregunta")[[1]]
+  
+  respuestas <- list()
+  for (i in 2:length(preguntas)) {
+    pregunta_texto <- preguntas[i]
+    
+    # Extraer número de pregunta y respuesta (esto puede necesitar ajustes)
+    num_pregunta <- str_extract(pregunta_texto, "\\d+")
+    respuesta <- str_extract(pregunta_texto, "Respuesta [A-Z]")
+    
+    if (!is.na(num_pregunta) && !is.na(respuesta)) {
+      respuestas[[paste0("Pregunta ", num_pregunta)]] <- respuesta
+    }
+  }
+  
+  return(respuestas)
+}
+
+# Aplicar la función a cada página del PDF
+respuestas_lista <- lapply(pdf_text, procesar_respuestas)
+
+# Ver las respuestas extraídas (opcional)
+print(respuestas_lista)
+
+# Función para calificar respuestas
+calificar <- function(respuestas, respuestas_correctas) {
+  puntaje <- 0
+  total_preguntas <- length(respuestas_correctas)
+  
+  for (pregunta in names(respuestas_correctas)) {
+    if (!is.null(respuestas[[pregunta]]) && respuestas[[pregunta]] == respuestas_correctas[[pregunta]]) {
+      puntaje <- puntaje + 1
+    }
+  }
+  
+  return(puntaje / total_preguntas * 100)  # Porcentaje
+}
+
+# Calificar las respuestas de cada página
+puntajes <- sapply(respuestas_lista, function(respuestas) {
+  calificar(respuestas, respuestas_correctas)
+})
+
+# Ver puntajes (opcional)
+print(puntajes)
+
+# Mostrar el resultado final incluyendo el nombre del estudiante y puntajes
+print(paste("Nombre del estudiante:", nombre_estudiante))
+print("Puntajes por página:")
+print(puntajes)
+
+
+```
+

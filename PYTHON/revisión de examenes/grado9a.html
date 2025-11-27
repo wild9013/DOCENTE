@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slideshow de Elecciones por Categoría y Respuesta Correcta</title>
+    <!-- Importar Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importar Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .slide-container {
+            min-height: 480px; /* Increased height to accommodate correct answer text */
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px; /* Fixed height for the chart area */
+            width: 100%;
+        }
+        /* Custom button styling */
+        .nav-button {
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .nav-button:hover {
+            background-color: #3b82f6; /* darker blue on hover */
+        }
+        .nav-button:active {
+            transform: scale(0.95);
+        }
+        .correct-answer-text {
+            font-weight: bold;
+            color: #16a34a; /* Green color for correct answer indication */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <header class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-gray-800">Análisis de Elecciones por Categoría y Pregunta</h1>
+        <p class="text-gray-600 mt-1">Navega para ver los resultados de cada pregunta y su respuesta correcta.</p>
+    </header>
+
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-2xl">
+        <div id="slideCounter" class="text-center text-lg font-semibold text-gray-700 mb-2">
+            Pregunta 1 / 20
+        </div>
+        <div id="correctAnswerInfo" class="text-center text-md mb-4">
+            <!-- La respuesta correcta se mostrará aquí -->
+        </div>
+
+        <div class="slide-container mb-6">
+            <h2 id="questionTitle" class="text-2xl font-bold text-blue-600 text-center mb-4">Pregunta 1</h2>
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-4">
+            <button id="prevButton" class="nav-button bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                Anterior
+            </button>
+            <button id="nextButton" class="nav-button bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                Siguiente
+            </button>
+        </div>
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-gray-500">
+        <p>Cada diapositiva muestra la distribución de respuestas y la opción correcta.</p>
+        <p class="font-bold mt-2">Importante: Reemplace los datos de ejemplo en el script con sus datos reales.</p>
+    </footer>
+
+    <script>
+        // Vector de respuestas correctas (1=A, 2=B, 3=C, 4=D)
+        const correctAnswersKey = "21342112333323134113".split('').map(Number); // Convertido a array de números
+
+        // Mapeo de número de categoría a Letra de Respuesta
+        const categoryMap = {
+            1: 'Respuesta A',
+            2: 'Respuesta B',
+            3: 'Respuesta C',
+            4: 'Respuesta D'
+        };
+        const categoryLetters = ['A', 'B', 'C', 'D'];
+
+
+        // --- INICIO: DATOS DE EJEMPLO ---
+        // DEBES REEMPLAZAR ESTO CON TUS DATOS REALES.
+        // Estructura: Un array de 20 arrays. Cada array interno representa una pregunta (columna)
+        // y contiene las respuestas (1, 2, 3, o 4) de todos los encuestados para ESA pregunta.
+        const rawResponsesByQuestion = [
+            // Pregunta 1 (ejemplo con 30 respuestas)
+            [1, 2, 1, 3, 4, 1, 2, 2, 3, 1, 4, 1, 2, 3, 1, 1, 2, 4, 3, 2, 1, 2, 3, 4, 1, 1, 2, 3, 4, 1],
+            // Pregunta 2 (ejemplo con 30 respuestas)
+            [3, 3, 2, 1, 4, 4, 1, 2, 3, 1, 2, 2, 4, 3, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 4, 3, 1],
+            // ... (Debes añadir los datos para las preguntas 3 a 18 aquí)
+            // Generando datos de ejemplo para las preguntas restantes para que el script funcione
+            // RECUERDA REEMPLAZAR ESTO
+            ...Array.from({ length: 16 }, (_, i) => // Preguntas 3 a 18
+                Array.from({ length: 30 }, () => Math.floor(Math.random() * 4) + 1)
+            ),
+            // Pregunta 19 (ejemplo con 30 respuestas)
+            [4, 1, 2, 3, 3, 2, 1, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 1, 2, 3, 4, 1, 2, 3, 1],
+            // Pregunta 20 (ejemplo con 30 respuestas)
+            [2, 2, 2, 1, 1, 1, 3, 3, 3, 4, 4, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1, 3, 4, 2, 4]
+        ];
+        // --- FIN: DATOS DE EJEMPLO ---
+
+        if (rawResponsesByQuestion.length !== 20 || correctAnswersKey.length !== 20) {
+            console.error("Error: Se esperan datos para 20 preguntas y 20 respuestas correctas.");
+            document.body.innerHTML = '<div class="text-red-500 text-center p-10">Error en los datos: Se esperan datos para 20 preguntas y 20 claves de respuestas correctas. Por favor, revise las variables `rawResponsesByQuestion` y `correctAnswersKey` en el script.</div>';
+        }
+
+        let processedData = [];
+        let currentSlideIndex = 0;
+        let categoryChart = null;
+
+        // Función para procesar los datos crudos y contar las categorías por pregunta
+        function processData() {
+            processedData = rawResponsesByQuestion.map((responses, index) => {
+                // Inicializar contadores para Respuesta A, B, C, D
+                const categoryCounts = { 'Respuesta A': 0, 'Respuesta B': 0, 'Respuesta C': 0, 'Respuesta D': 0 };
+                if (Array.isArray(responses)) {
+                    responses.forEach(responseNumber => {
+                        const categoryName = categoryMap[responseNumber]; // Mapear número a nombre (ej: 1 a 'Respuesta A')
+                        if (categoryName && categoryCounts.hasOwnProperty(categoryName)) {
+                            categoryCounts[categoryName]++;
+                        }
+                    });
+                } else {
+                    console.warn(`Datos para la pregunta ${index + 1} no es un array.`);
+                }
+                const correctAnswerNumber = correctAnswersKey[index];
+                const correctAnswerName = categoryMap[correctAnswerNumber];
+
+                return {
+                    questionNumber: index + 1,
+                    counts: categoryCounts,
+                    correctAnswer: correctAnswerName // Almacenar el nombre de la respuesta correcta (ej: 'Respuesta B')
+                };
+            });
+        }
+
+        // Función para renderizar la diapositiva actual
+        function renderSlide() {
+            if (processedData.length === 0 || currentSlideIndex < 0 || currentSlideIndex >= processedData.length) {
+                console.error("Índice de diapositiva inválido o datos no procesados.");
+                return;
+            }
+
+            const slideData = processedData[currentSlideIndex];
+            const questionTitleEl = document.getElementById('questionTitle');
+            const slideCounterEl = document.getElementById('slideCounter');
+            const correctAnswerInfoEl = document.getElementById('correctAnswerInfo');
+
+            questionTitleEl.textContent = `Resultados para la Pregunta ${slideData.questionNumber}`;
+            slideCounterEl.textContent = `Pregunta ${slideData.questionNumber} / ${processedData.length}`;
+            correctAnswerInfoEl.innerHTML = `La respuesta correcta es: <span class="correct-answer-text">${slideData.correctAnswer}</span>`;
+
+            const chartLabels = Object.keys(slideData.counts); // ['Respuesta A', 'Respuesta B', ...]
+            const chartValues = Object.values(slideData.counts);
+
+            // Colores base para las barras
+            const defaultBackgroundColor = 'rgba(54, 162, 235, 0.7)'; // Azul
+            const defaultBorderColor = 'rgba(54, 162, 235, 1)';
+            // Color para la barra de la respuesta correcta
+            const correctBackgroundColor = 'rgba(75, 192, 192, 0.7)'; // Verde azulado
+            const correctBorderColor = 'rgba(75, 192, 192, 1)';
+
+            const backgroundColors = chartLabels.map(label =>
+                label === slideData.correctAnswer ? correctBackgroundColor : defaultBackgroundColor
+            );
+            const borderColors = chartLabels.map(label =>
+                label === slideData.correctAnswer ? correctBorderColor : defaultBorderColor
+            );
+
+
+            const chartData = {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Número de Elecciones',
+                    data: chartValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1.5,
+                    borderRadius: 5,
+                }]
+            };
+
+            const chartConfig = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Elecciones',
+                                font: { size: 14, weight: 'bold' },
+                                color: '#333'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                color: '#555',
+                                callback: function(value) {if (Number.isInteger(value)) {return value;}} // Solo mostrar enteros
+                            },
+                             grid: { color: '#e0e0e0' }
+                        },
+                        x: {
+                             title: {
+                                display: true,
+                                text: 'Opciones de Respuesta',
+                                font: { size: 14, weight: 'bold' },
+                                color: '#333'
+                            },
+                            ticks: { color: '#555' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y;
+                                    }
+                                    if (context.label === slideData.correctAnswer) {
+                                        label += ' (Correcta)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 500,
+                        easing: 'easeInOutQuad'
+                    }
+                }
+            };
+
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            categoryChart = new Chart(ctx, chartConfig);
+
+            document.getElementById('prevButton').disabled = currentSlideIndex === 0;
+            document.getElementById('nextButton').disabled = currentSlideIndex === processedData.length - 1;
+        }
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (currentSlideIndex < processedData.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        });
+
+        document.getElementById('prevButton').addEventListener('click', () => {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        });
+
+        if (rawResponsesByQuestion.length === 20 && correctAnswersKey.length === 20) {
+            processData();
+            renderSlide();
+        } else {
+            const slideContainer = document.querySelector('.slide-container');
+            if (slideContainer) {
+                 slideContainer.innerHTML = `<p class="text-center text-red-600 font-semibold">No se pueden cargar las diapositivas debido a un error en los datos de entrada. Verifique la consola para más detalles.</p>`;
+            }
+             document.getElementById('prevButton').disabled = true;
+             document.getElementById('nextButton').disabled = true;
+        }
+
+    </script>
+
+</body>
+</html>
