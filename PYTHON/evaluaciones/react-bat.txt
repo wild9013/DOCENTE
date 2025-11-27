@@ -1,0 +1,8 @@
+@echo off
+echo Creando proyecto React...
+npx create-react-app sistema-evaluacion
+cd sistema-evaluacion
+echo Instalando dependencias...
+npm install lucide-react xlsx
+echo Listo! Ahora modifica los archivos y ejecuta: npm start
+pause
