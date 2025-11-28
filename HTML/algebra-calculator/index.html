@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Algebraica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Variables</h2>
+                <button id="clear-vars" class="icon-btn" title="Limpiar Variables">🗑️</button>
+            </div>
+            <div id="variables-list" class="variables-list">
+                <!-- Variables will be injected here -->
+                <div class="empty-state">No hay variables definidas</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Calculadora Algebraica</h1>
+                <p>Define variables (ej. <code>a = 5</code>) y evalúa expresiones (ej. <code>a^2 + 10</code>)</p>
+                <div class="mode-toggle">
+                    <button id="mode-rad" class="mode-btn active">RAD</button>
+                    <button id="mode-deg" class="mode-btn">DEG</button>
+                </div>
+            </div>
+
+            <div id="history" class="history-container">
+                <!-- History items will be injected here -->
+                <div class="welcome-msg">
+                    <p>Empieza escribiendo una expresión abajo.</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="expression-input" placeholder="Escribe una expresión o asignación..."
+                    autocomplete="off">
+                <button id="evaluate-btn">Calcular</button>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

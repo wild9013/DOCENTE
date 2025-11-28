@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100 Matemáticos Dicen</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header / Scoreboard -->
+        <header class="game-header">
+            <div class="team-score" id="team1-score-box">
+                <div class="team-name">EQUIPO 1</div>
+                <div class="score-display" id="score-team1">0</div>
+            </div>
+            
+            <div class="logo-area">
+                <h1>100 MATEMÁTICOS<br><span>DICEN</span></h1>
+                <div class="current-pot" id="current-pot">0</div>
+            </div>
+
+            <div class="team-score" id="team2-score-box">
+                <div class="team-name">EQUIPO 2</div>
+                <div class="score-display" id="score-team2">0</div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-board-container">
+            <div class="question-display" id="question-text">
+                PREGUNTA DE EJEMPLO
+            </div>
+
+            <div class="answers-board" id="answers-board">
+                <!-- Cards will be injected here by JS -->
+                <!-- Example Card Structure for reference:
+                <div class="answer-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <span class="number">1</span>
+                        </div>
+                        <div class="card-back">
+                            <span class="answer-text">RESPUESTA</span>
+                            <span class="answer-points">99</span>
+                        </div>
+                    </div>
+                </div>
+                -->
+            </div>
+        </main>
+
+        <!-- Strikes Overlay (Hidden by default) -->
+        <div class="strikes-overlay" id="strikes-overlay">
+            <div class="strike-symbol">X</div>
+        </div>
+
+        <!-- Controls (Bottom) -->
+        <footer class="game-controls">
+            <button id="btn-wrong" class="control-btn btn-danger">MARCAR ERROR (X)</button>
+            <button id="btn-next" class="control-btn btn-primary">SIGUIENTE RONDA</button>
+            <button id="btn-team1-add" class="control-btn btn-team">PUNTOS EQUIPO 1</button>
+            <button id="btn-team2-add" class="control-btn btn-team">PUNTOS EQUIPO 2</button>
+        </footer>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

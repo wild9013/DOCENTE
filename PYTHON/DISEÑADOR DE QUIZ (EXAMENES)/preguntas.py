@@ -1,4 +1,4 @@
-import re
+# import re
 import random
 from pathlib import Path
 from reportlab.pdfgen import canvas

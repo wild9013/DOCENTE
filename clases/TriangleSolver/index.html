@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Triángulos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Resolución de Triángulos</h1>
+            <p>Explora la Ley de Senos y Cosenos de forma interactiva</p>
+        </header>
+
+        <main>
+            <section class="visualization-area">
+                <div class="canvas-wrapper">
+                    <canvas id="triangleCanvas"></canvas>
+                    <div class="overlay-controls">
+                        <!-- Controls will be injected here or overlayed -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="controls-area">
+                <div class="input-group">
+                    <h3>Configuración</h3>
+                    <div class="sliders" id="input-container">
+                        <!-- Dynamic inputs will be managed by JS, but let's put them all here hidden by default -->
+                        <div class="control-row" id="row-side-a">
+                            <label>Lado a: <span id="val-side-a">150</span></label>
+                            <input type="range" id="input-side-a" min="10" max="300" value="150">
+                        </div>
+                        <div class="control-row" id="row-side-b">
+                            <label>Lado b: <span id="val-side-b">180</span></label>
+                            <input type="range" id="input-side-b" min="10" max="300" value="180">
+                        </div>
+                        <div class="control-row" id="row-side-c">
+                            <label>Lado c: <span id="val-side-c">100</span></label>
+                            <input type="range" id="input-side-c" min="10" max="300" value="100">
+                        </div>
+                        <div class="control-row" id="row-angle-a">
+                            <label>Ángulo A: <span id="val-angle-a">60°</span></label>
+                            <input type="range" id="input-angle-a" min="1" max="179" value="60">
+                        </div>
+                        <div class="control-row" id="row-angle-b">
+                            <label>Ángulo B: <span id="val-angle-b">60°</span></label>
+                            <input type="range" id="input-angle-b" min="1" max="179" value="60">
+                        </div>
+                        <div class="control-row" id="row-angle-c">
+                            <label>Ángulo C: <span id="val-angle-c">60°</span></label>
+                            <input type="range" id="input-angle-c" min="1" max="179" value="60">
+                        </div>
+                    </div>
+                    <div class="mode-selector">
+                        <button class="active" data-mode="SAS">L-A-L (SAS)</button>
+                        <button data-mode="SSS">L-L-L (SSS)</button>
+                        <button data-mode="ASA">A-L-A (ASA)</button>
+                    </div>
+                </div>
+
+                <div class="explanation-panel">
+                    <h3>Pasos de Resolución</h3>
+                    <div id="steps-content">
+                        <p>Ajusta los valores para ver cómo se resuelve el triángulo.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

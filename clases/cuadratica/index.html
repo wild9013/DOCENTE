@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solver Algebraico Pro</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathLive -->
+    <script defer src="//unpkg.com/mathlive"></script>
+    
+    <!-- Nerdamer -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-mesh"></div>
+    
+    <main class="container">
+        <header>
+            <h1>Solver Algebraico</h1>
+            <p>Escribe tu ecuación y obtén la solución al instante.</p>
+        </header>
+
+        <div class="solver-card">
+            <div class="input-group">
+                <label for="math-input">Tu Ecuación</label>
+                <!-- MathLive Component -->
+                <math-field id="math-input" virtual-keyboard-mode="manual">x^2 - 4 = 0</math-field>
+            </div>
+
+            <div class="actions">
+                <button id="solve-btn" class="primary-btn">
+                    <span class="icon">✨</span> Resolver
+                </button>
+            </div>
+
+            <div class="result-section" id="result-section">
+                <h2>Solución</h2>
+                <div id="result-display" class="result-box">
+                    <span class="placeholder">La solución aparecerá aquí...</span>
+                </div>
+                <div id="steps-display" class="steps-box hidden"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
