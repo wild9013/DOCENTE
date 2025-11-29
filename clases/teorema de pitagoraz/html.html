@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización Teorema de Pitágoras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0f4f8;
+            overflow: hidden;
+        }
+
+        .svg-container {
+            width: 100%;
+            height: 65vh; /* Un poco más alto para acomodar triángulos grandes */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Estilos para los bloques */
+        .block {
+            stroke: #fff;
+            stroke-width: 0.5px; /* Borde más fino para escalas pequeñas */
+            rx: 10%; /* Relativo al tamaño */
+            ry: 10%;
+            transition: all 2.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            will-change: transform, x, y;
+        }
+
+        .block-a { fill: #FF6B6B; } /* Rojo suave */
+        .block-b { fill: #4ECDC4; } /* Turquesa */
+        
+        /* El cuadrado de la hipotenusa (borde) */
+        .hypotenuse-frame {
+            fill: none;
+            stroke: #2D3436;
+            stroke-width: 2;
+            stroke-dasharray: 5, 5;
+            opacity: 0.3;
+        }
+
+        .triangle-shape {
+            fill: #ffeaa7;
+            stroke: #2D3436;
+            stroke-width: 2;
+            transition: d 0.5s ease;
+        }
+
+        /* Texto y Etiquetas */
+        .label {
+            font-size: 24px;
+            font-weight: 600;
+            fill: #2D3436;
+            text-anchor: middle;
+            opacity: 1;
+            transition: opacity 0.5s;
+            pointer-events: none; /* Evitar bloquear clics */
+        }
+        
+        /* Panel de Control */
+        .controls {
+            text-align: center;
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #dfe6e9;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (min-width: 640px) {
+            .controls {
+                flex-direction: row;
+                justify-content: center;
+                gap: 20px;
+            }
+        }
+
+        button {
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(108, 92, 231, 0.3);
+            transition: transform 0.1s, background 0.3s;
+            min-width: 140px;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #5849c4;
+            transform: translateY(-2px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #b2bec3;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        select {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid #dfe6e9;
+            font-family: inherit;
+            font-weight: 600;
+            color: #2d3436;
+            cursor: pointer;
+            outline: none;
+            background-color: #f8f9fa;
+        }
+        
+        select:hover {
+            border-color: #6c5ce7;
+        }
+
+        /* Estado animado */
+        .animating .label-side, .animating .hide-on-anim {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flex flex-col h-screen">
+        <!-- Título -->
+        <div class="pt-4 text-center z-10 bg-white/50 backdrop-blur-sm pb-2">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">Teorema de Pitágoras</h1>
+            <p class="text-gray-500 text-sm sm:text-base">Elige una configuración y pulsa Demostrar</p>
+        </div>
+
+        <!-- Área de Animación SVG -->
+        <div class="svg-container flex-grow" id="container">
+            <svg id="mainSvg" viewBox="-300 -300 900 700" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.15"/>
+                    </filter>
+                </defs>
+
+                <!-- Grupo Principal (se moverá dinámicamente para centrar) -->
+                <g id="scene-group" transform="translate(150, 100)">
+                    
+                    <!-- Triángulo Shape -->
+                    <path id="triangle-path" d="" class="triangle-shape" />
+
+                    <!-- Etiquetas de lados -->
+                    <text id="lbl-a" class="label label-side" style="fill:#FF6B6B">a=3</text>
+                    <text id="lbl-b" class="label label-side" style="fill:#4ECDC4">b=4</text>
+                    <text id="lbl-c" class="label label-side" style="fill:#a29bfe">c=5</text>
+
+                    <!-- Etiquetas de Áreas -->
+                    <text id="areaA" class="label" opacity="0">9</text>
+                    <text id="areaB" class="label" opacity="0">16</text>
+                    <text id="areaC" class="label" opacity="0">25</text>
+
+                    <!-- Marco de la hipotenusa -->
+                    <g id="hypotenuse-target-group">
+                        <!-- Generado por JS -->
+                    </g>
+
+                    <!-- Contenedor de bloques (Capa superior) -->
+                    <g id="blocks-container" filter="url(#shadow)">
+                        <!-- Los bloques se generarán aquí -->
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <div class="flex items-center gap-2 hide-on-anim">
+                <label for="dimensions" class="font-bold text-gray-700">Catetos:</label>
+                <select id="dimensions" onchange="changeDimensions()">
+                    <option value="3,4">3 y 4 (c=5)</option>
+                    <option value="6,8">6 y 8 (c=10)</option>
+                    <option value="5,12">5 y 12 (c=13)</option>
+                    <option value="9,12">9 y 12 (c=15)</option>
+                    <option value="8,15">8 y 15 (c=17)</option>
+                </select>
+            </div>
+
+            <div class="text-gray-600 font-medium text-sm hidden sm:block" id="status-text">
+                Área A + Área B = Área C
+            </div>
+            
+            <button onclick="toggleAnimation()" id="actionBtn">Demostrar</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuración Global
+        let UNIT = 60; 
+        let A_SIZE = 3;
+        let B_SIZE = 4;
+        let C_SIZE = 5;
+        
+        let isAssembled = false;
+        let isAnimating = false;
+
+        // Referencias DOM
+        const svgGroup = document.getElementById('blocks-container');
+        const sceneGroup = document.getElementById('scene-group');
+        const hypotenuseGroup = document.getElementById('hypotenuse-target-group');
+        const trianglePath = document.getElementById('triangle-path');
+        const btn = document.getElementById('actionBtn');
+        const dimSelect = document.getElementById('dimensions');
+        
+        // Referencias Etiquetas
+        const lblA = document.getElementById('lbl-a');
+        const lblB = document.getElementById('lbl-b');
+        const lblC = document.getElementById('lbl-c');
+        const txtAreaA = document.getElementById('areaA');
+        const txtAreaB = document.getElementById('areaB');
+        const txtAreaC = document.getElementById('areaC');
+
+        // Estado de Bloques
+        let blocksA = [];
+        let blocksB = [];
+
+        function init() {
+            changeDimensions(); // Carga inicial basada en el select
+        }
+
+        function changeDimensions() {
+            if (isAssembled || isAnimating) {
+                // Si está animado, reseteamos primero sin animar
+                instantReset();
+            }
+
+            // Obtener valores del select
+            const val = dimSelect.value.split(',');
+            A_SIZE = parseInt(val[0]);
+            B_SIZE = parseInt(val[1]);
+            C_SIZE = Math.sqrt(A_SIZE*A_SIZE + B_SIZE*B_SIZE);
+
+            // Ajustar escala (Zoom automático)
+            // Base visual: Queremos que el triángulo ocupe unos 300-400px max
+            // Triangulo 3-4-5 -> UNIT 60 (Lado 240px)
+            // Triangulo 8-15-17 -> Lado mayor 17. 17 * 60 = 1020px (muy grande).
+            // Formula: UNIT = TargetSize / MaxSide
+            const maxDimension = Math.max(A_SIZE, B_SIZE, C_SIZE);
+            UNIT = 300 / maxDimension; 
+
+            // Actualizar etiquetas
+            lblA.textContent = `a=${A_SIZE}`;
+            lblB.textContent = `b=${B_SIZE}`;
+            lblC.textContent = `c=${C_SIZE}`;
+            
+            txtAreaA.textContent = A_SIZE * A_SIZE;
+            txtAreaB.textContent = B_SIZE * B_SIZE;
+            txtAreaC.textContent = C_SIZE * C_SIZE;
+
+            renderScene();
+        }
+
+        function renderScene() {
+            // Limpiar todo
+            svgGroup.innerHTML = '';
+            hypotenuseGroup.innerHTML = '';
+            blocksA = [];
+            blocksB = [];
+
+            // 1. Dibujar Triángulo
+            // A vertical hacia arriba (negativo Y), B horizontal derecha
+            // Vértices: (0,0), (0, -A*UNIT), (B*UNIT, 0)
+            const p1 = `0,0`;
+            const p2 = `0,${-A_SIZE * UNIT}`;
+            const p3 = `${B_SIZE * UNIT},0`;
+            trianglePath.setAttribute('d', `M${p1} L${p2} L${p3} Z`);
+
+            // 2. Posicionar etiquetas
+            // A (izquierda centro)
+            lblA.setAttribute('x', -30);
+            lblA.setAttribute('y', (-A_SIZE * UNIT) / 2);
+            txtAreaA.setAttribute('x', (-A_SIZE * UNIT) / 2 - 20); // Aproximado al centro del cuadrado A
+            txtAreaA.setAttribute('y', (-A_SIZE * UNIT) / 2);
+
+            // B (abajo centro)
+            lblB.setAttribute('x', (B_SIZE * UNIT) / 2);
+            lblB.setAttribute('y', 40);
+            txtAreaB.setAttribute('x', (B_SIZE * UNIT) / 2);
+            txtAreaB.setAttribute('y', (B_SIZE * UNIT) / 2 + 10); // Centro cuadrado B
+
+            // C (hipotenusa centro)
+            // Punto medio hipotenusa
+            const midX = (B_SIZE * UNIT) / 2;
+            const midY = (-A_SIZE * UNIT) / 2;
+            lblC.setAttribute('x', midX + 40);
+            lblC.setAttribute('y', midY - 20);
+            
+            // Area C (Centro cuadrado hipot) - Calculo rudo visual
+            txtAreaC.setAttribute('x', midX + (A_SIZE*UNIT*0.5)); // Desplazado
+            txtAreaC.setAttribute('y', midY - (B_SIZE*UNIT*0.5));
+
+            // Centrar la escena
+            // Movemos el grupo entero para que quede bonito
+            // El triangulo va de 0 a B*Unit en X. Centramos en viewport.
+            // Y va de -A*Unit a 0.
+            const centerOffsetX = (B_SIZE * UNIT) / 2;
+            const centerOffsetY = (-A_SIZE * UNIT) / 2;
+            // No necesitamos mover dinámicamente mucho si el viewBox es generoso,
+            // pero podemos ajustar transform translate del sceneGroup.
+            // Viewbox es -300 -300 900 700. Centro aprox 150, 50.
+            // Dejamos transform estático por simplicidad, el auto-scale de UNIT ayuda.
+
+            // 3. Crear Componentes
+            createHypotenuseFrame();
+            createBlocks();
+        }
+
+        function createHypotenuseFrame() {
+            const angleRad = Math.atan2(A_SIZE, B_SIZE); 
+            const angleDeg = angleRad * (180 / Math.PI); 
+
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            // Trasladar al vértice superior del cateto A (0, -A_SIZE*UNIT)
+            g.setAttribute("transform", `translate(0, ${-A_SIZE * UNIT}) rotate(${-angleDeg})`);
+            
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("width", (C_SIZE * UNIT));
+            rect.setAttribute("height", (C_SIZE * UNIT));
+            rect.setAttribute("y", -(C_SIZE * UNIT)); // Crece "hacia arriba" de la hipotenusa
+            rect.setAttribute("class", "hypotenuse-frame");
+            
+            g.appendChild(rect);
+            hypotenuseGroup.appendChild(g);
+        }
+
+        function createBlocks() {
+            let idCount = 0;
+
+            // --- GRUPO A (Izquierda) ---
+            // Cuadrado de tamaño A*A adyacente al cateto A
+            for(let r=0; r<A_SIZE; r++) { 
+                for(let c=0; c<A_SIZE; c++) { 
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    
+                    // Coordenadas: X negativo, Y desde -A_SIZE*UNIT hasta 0
+                    // r=0 es la fila superior (-A_SIZE*UNIT), r=A es la base (0)
+                    // Ajuste para que se dibuje correctamente
+                    
+                    const x = -(c + 1) * UNIT;
+                    const y = -(A_SIZE * UNIT) + (r * UNIT); // Empieza arriba y baja
+                    
+                    rect.setAttribute("width", UNIT);
+                    rect.setAttribute("height", UNIT);
+                    rect.setAttribute("x", x);
+                    rect.setAttribute("y", y); 
+                    rect.setAttribute("class", "block block-a");
+                    
+                    rect.dataset.ox = x;
+                    rect.dataset.oy = y;
+                    rect.dataset.idx = idCount++;
+                    
+                    svgGroup.appendChild(rect);
+                    blocksA.push(rect);
+                }
+            }
+
+            // --- GRUPO B (Abajo) ---
+            // Cuadrado de tamaño B*B debajo del cateto B
+            for(let r=0; r<B_SIZE; r++) {
+                for(let c=0; c<B_SIZE; c++) {
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    
+                    const x = c * UNIT;
+                    const y = r * UNIT; // Empieza en 0 y baja
+                    
+                    rect.setAttribute("width", UNIT);
+                    rect.setAttribute("height", UNIT);
+                    rect.setAttribute("x", x);
+                    rect.setAttribute("y", y); 
+                    rect.setAttribute("class", "block block-b");
+                    
+                    rect.dataset.ox = x;
+                    rect.dataset.oy = y;
+                    rect.dataset.idx = idCount++;
+                    
+                    svgGroup.appendChild(rect);
+                    blocksB.push(rect);
+                }
+            }
+        }
+
+        function toggleAnimation() {
+            if (isAnimating) return;
+            
+            if (isAssembled) {
+                reset();
+            } else {
+                assemble();
+            }
+        }
+
+        function instantReset() {
+            isAssembled = false;
+            document.body.classList.remove('animating');
+            btn.innerText = "Demostrar";
+            dimSelect.disabled = false;
+            
+            txtAreaA.style.opacity = 0;
+            txtAreaB.style.opacity = 0;
+            txtAreaC.style.opacity = 0;
+        }
+
+        function assemble() {
+            isAnimating = true;
+            isAssembled = true;
+            btn.innerText = "Reiniciar";
+            btn.disabled = true; // Evitar spamclicks durante animacion
+            dimSelect.disabled = true; // Bloquear cambio mientras anima
+            document.body.classList.add('animating');
+
+            // Parámetros de rotación
+            const angleRad = Math.atan2(A_SIZE, B_SIZE);
+            const cos = Math.cos(angleRad); // B/C
+            const sin = Math.sin(angleRad); // A/C
+            const angleDeg = angleRad * (180 / Math.PI);
+
+            const originX = 0;
+            const originY = -A_SIZE * UNIT;
+
+            // Vectores base del cuadrado C rotado
+            // U a lo largo de la hipotenusa (hacia derecha/abajo)
+            const uX = cos; 
+            const uY = sin;
+            // V perpendicular (hacia arriba/derecha visualmente en la pantalla)
+            // En SVG Y es invertido. Normal estándar (-y, x) -> (-sin, cos).
+            // Queremos que el cuadrado crezca "hacia afuera" del triángulo.
+            // Hipotenusa vector: (B, A). Normal hacia "arriba-derecha": (A, -B).
+            // Normalizado: (sin, -cos).
+            
+            const vX = sin; 
+            const vY = -cos; 
+
+            // Generar slots destino (0..C-1)
+            let targetSlots = [];
+            for(let row=0; row<C_SIZE; row++) {
+                for(let col=0; col<C_SIZE; col++) {
+                    targetSlots.push({r: row, c: col});
+                }
+            }
+
+            const allBlocks = [...blocksA, ...blocksB];
+            
+            // Animación
+            allBlocks.forEach((block, index) => {
+                if(index >= targetSlots.length) return; // Seguridad
+
+                const slot = targetSlots[index];
+                
+                // Mapeo: row 0 es la pegada a la hipotenusa.
+                const tCol = slot.c; 
+                const tRow = slot.r; 
+                
+                const localDistAlongHyp = tCol * UNIT;
+                const localDistAwayHyp = tRow * UNIT;
+
+                // Coordenadas finales de la esquina superior izquierda del bloque en el espacio mundo
+                const finalX = originX + (localDistAlongHyp * uX) + (localDistAwayHyp * vX);
+                const finalY = originY + (localDistAlongHyp * uY) + (localDistAwayHyp * vY);
+                
+                // Calcular CSS Transform
+                const currentX = parseFloat(block.dataset.ox);
+                const currentY = parseFloat(block.dataset.oy);
+                
+                // Truco de centro para rotación perfecta
+                const half = UNIT / 2;
+                const centerX = finalX + (half * uX) + (half * vX);
+                const centerY = finalY + (half * uY) + (half * vY);
+                
+                const curCenterX = currentX + half;
+                const curCenterY = currentY + half;
+                
+                const moveX = centerX - curCenterX;
+                const moveY = centerY - curCenterY;
+                
+                // Retraso escalonado (más rápido si hay muchos bloques)
+                const delayFactor = (blocksA.length + blocksB.length) > 50 ? 15 : 30;
+                const delay = index * delayFactor; 
+                
+                // Rotación: Negativa del ángulo del triángulo
+                const rot = -angleDeg;
+
+                setTimeout(() => {
+                    block.style.transformBox = "fill-box";
+                    block.style.transformOrigin = "center";
+                    block.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rot}deg)`;
+                }, delay);
+            });
+            
+            // Finalizar estado
+            setTimeout(() => {
+                isAnimating = false;
+                btn.disabled = false;
+                
+                // Mostrar etiquetas
+                txtAreaA.style.opacity = 0;
+                txtAreaB.style.opacity = 0;
+                txtAreaC.textContent = C_SIZE * C_SIZE;
+                txtAreaC.style.opacity = 1;
+                
+                // Posicionar label de Area C mejor
+                // Centro del cuadrado C
+                const centerCX = originX + (C_SIZE*UNIT/2 * uX) + (C_SIZE*UNIT/2 * vX);
+                const centerCY = originY + (C_SIZE*UNIT/2 * uY) + (C_SIZE*UNIT/2 * vY);
+                txtAreaC.setAttribute('x', centerCX);
+                txtAreaC.setAttribute('y', centerCY + 10); // Ajuste visual texto
+
+            }, (allBlocks.length * 20) + 2500);
+        }
+
+        function reset() {
+            isAnimating = true;
+            document.body.classList.remove('animating');
+            btn.disabled = true;
+
+            const allBlocks = [...blocksA, ...blocksB];
+            allBlocks.forEach((block, index) => {
+                 setTimeout(() => {
+                    block.style.transform = `translate(0px, 0px) rotate(0deg)`;
+                 }, index * 5); // Reset rápido
+            });
+
+            setTimeout(() => {
+                isAssembled = false;
+                isAnimating = false;
+                btn.innerText = "Demostrar";
+                btn.disabled = false;
+                dimSelect.disabled = false;
+
+                txtAreaA.style.opacity = 1; // Restaurar visibilidad original si se desea, o dejar en 0 hasta hover
+                txtAreaB.style.opacity = 1;
+                txtAreaC.style.opacity = 0;
+                
+                // Reset simple etiquetas
+                txtAreaA.style.opacity = 0;
+                txtAreaB.style.opacity = 0;
+                
+            }, allBlocks.length * 5 + 1000);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
